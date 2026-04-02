@@ -677,6 +677,31 @@
       flex: 1;
     }
 
+    /* Drag and Drop for Job Columns */
+    .job-column-header {
+      cursor: move;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .job-column-header:hover {
+      background: var(--gray-100);
+    }
+
+    .dragging-column {
+      opacity: 0.4;
+      background: var(--primary-50);
+    }
+
+    .drag-over-column {
+      border-left: 3px solid var(--primary-500);
+      background: var(--primary-50);
+    }
+
+    .job-column-cell {
+      transition: all 0.2s;
+    }
+
     /* Career Path */
     .career-container {
       padding: 24px;
@@ -3289,18 +3314,20 @@ function getOrderedCompetencies() {
   return ordered;
 }
 
-// ===== DRAG AND DROP HANDLERS =====
+// ===== DRAG AND DROP HANDLERS FOR COMPARISON TABLE =====
 
 let draggedRowIndex = null;
+let draggedColumnIndex = null;
 
-function handleDragStart(e, index) {
+// Row (competency) dragging
+function handleRowDragStart(e, index) {
   draggedRowIndex = index;
   e.currentTarget.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
 }
 
-function handleDragOver(e) {
+function handleRowDragOver(e) {
   if (e.preventDefault) {
     e.preventDefault();
   }
@@ -3308,15 +3335,15 @@ function handleDragOver(e) {
   return false;
 }
 
-function handleDragEnter(e) {
+function handleRowDragEnter(e) {
   e.currentTarget.classList.add('drag-over');
 }
 
-function handleDragLeave(e) {
+function handleRowDragLeave(e) {
   e.currentTarget.classList.remove('drag-over');
 }
 
-function handleDrop(e, dropIndex) {
+function handleRowDrop(e, dropIndex) {
   if (e.stopPropagation) {
     e.stopPropagation();
   }
@@ -3338,7 +3365,7 @@ function handleDrop(e, dropIndex) {
   return false;
 }
 
-function handleDragEnd(e) {
+function handleRowDragEnd(e) {
   e.currentTarget.classList.remove('dragging');
 
   // Remove all drag-over classes
@@ -3349,6 +3376,109 @@ function handleDragEnd(e) {
   draggedRowIndex = null;
 }
 
+// Column (job description) dragging
+function handleColumnDragStart(e, index) {
+  draggedColumnIndex = index;
+  e.currentTarget.classList.add('dragging-column');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', index);
+
+  // Add visual feedback to entire column
+  const table = e.currentTarget.closest('table');
+  const rows = table.querySelectorAll('tr');
+  rows.forEach(row => {
+    const cell = row.children[index + 1]; // +1 because first column is competency names
+    if (cell) cell.classList.add('dragging-column');
+  });
+}
+
+function handleColumnDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleColumnDragEnter(e) {
+  if (e.currentTarget.cellIndex === 0) return; // Skip first column (competency names)
+  e.currentTarget.classList.add('drag-over-column');
+}
+
+function handleColumnDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-column');
+}
+
+function handleColumnDrop(e, dropIndex) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
+  e.currentTarget.classList.remove('drag-over-column');
+
+  if (draggedColumnIndex !== null && draggedColumnIndex !== dropIndex && dropIndex !== -1) {
+    // Get job order
+    const allJDs = getSavedJDs();
+    const deptJDs = allJDs.filter(j => j.departmentId === currentDepartmentId);
+
+    // Reorder jobs
+    const [removed] = deptJDs.splice(draggedColumnIndex, 1);
+    deptJDs.splice(dropIndex, 0, removed);
+
+    // Save new order
+    saveJobOrder(deptJDs.map(j => j.id));
+    loadCompareTable();
+  }
+
+  return false;
+}
+
+function handleColumnDragEnd(e) {
+  // Remove all drag styling
+  document.querySelectorAll('.dragging-column').forEach(el => {
+    el.classList.remove('dragging-column');
+  });
+  document.querySelectorAll('.drag-over-column').forEach(el => {
+    el.classList.remove('drag-over-column');
+  });
+
+  draggedColumnIndex = null;
+}
+
+// Job order management
+function getJobOrder() {
+  if (!currentDepartmentId) return null;
+  const key = 'jobOrder_' + currentDepartmentId;
+  const saved = localStorage.getItem(key);
+  return saved ? JSON.parse(saved) : null;
+}
+
+function saveJobOrder(order) {
+  if (!currentDepartmentId) return;
+  const key = 'jobOrder_' + currentDepartmentId;
+  localStorage.setItem(key, JSON.stringify(order));
+}
+
+function getOrderedJobs(jobs) {
+  const order = getJobOrder();
+  if (!order) return jobs;
+
+  const ordered = [];
+  order.forEach(id => {
+    const job = jobs.find(j => j.id === id);
+    if (job) ordered.push(job);
+  });
+
+  // Add any new jobs not in saved order
+  jobs.forEach(job => {
+    if (!ordered.find(j => j.id === job.id)) {
+      ordered.push(job);
+    }
+  });
+
+  return ordered;
+}
+
 function loadCompareTable() {
   if (!currentDepartmentId) {
     document.getElementById('compareTable').innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-title">No Department Selected</div><div class="empty-description">Please select a department to compare jobs.</div></div>';
@@ -3356,17 +3486,22 @@ function loadCompareTable() {
   }
 
   const allJDs = getSavedJDs();
-  const jds = allJDs.filter(j => j.departmentId === currentDepartmentId);
+  const deptJDs = allJDs.filter(j => j.departmentId === currentDepartmentId);
 
-  if (jds.length === 0) {
+  if (deptJDs.length === 0) {
     document.getElementById('compareTable').innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">No Jobs to Compare</div><div class="empty-description">Save at least one job analysis to see the comparison matrix.</div></div>';
     return;
   }
 
+  // Get ordered jobs
+  const jds = getOrderedJobs(deptJDs);
+
   let html = '<table class="compare-table"><thead><tr>';
   html += '<th><span title="Drag rows to reorder">Competency</span> <span style="font-size: 11px; color: var(--gray-400);">↕️</span></th>';
-  jds.forEach(jd => {
-    html += '<th>' + jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span></th>';
+  jds.forEach((jd, index) => {
+    html += '<th class="job-column-header" draggable="true" data-col-index="' + index + '" title="Drag to reorder columns">';
+    html += '<div style="cursor: move;"><span style="color: var(--gray-400); font-size: 14px; margin-right: 4px;">⋮⋮</span>';
+    html += jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span></div></th>';
   });
   html += '</tr></thead><tbody id="compareTableBody">';
 
@@ -3374,13 +3509,13 @@ function loadCompareTable() {
 
   orderedComps.forEach((comp, index) => {
     html += '<tr class="comp-row-draggable" draggable="true" data-index="' + index + '">';
-    html += '<td><div class="comp-cell-content"><span class="drag-handle" title="Drag to reorder">⋮⋮</span><div class="comp-text-wrapper"><div class="comp-name">' + comp.name + '</div><div class="comp-desc">' + comp.desc + '</div></div></div></td>';
+    html += '<td><div class="comp-cell-content"><span class="drag-handle" title="Drag to reorder rows">⋮⋮</span><div class="comp-text-wrapper"><div class="comp-name">' + comp.name + '</div><div class="comp-desc">' + comp.desc + '</div></div></div></td>';
 
-    jds.forEach(jd => {
+    jds.forEach((jd, colIndex) => {
       const compData = jd.results.find(c => c.name === comp.name);
       const level = compData ? compData.level : 'D';
 
-      html += '<td style="text-align: center;">';
+      html += '<td class="job-column-cell" data-col-index="' + colIndex + '" style="text-align: center;">';
       html += '<div class="level-selector">';
 
       ['D', 'C', 'A', 'E'].forEach(l => {
@@ -3399,15 +3534,36 @@ function loadCompareTable() {
   html += '</tbody></table>';
   document.getElementById('compareTable').innerHTML = html;
 
-  // Attach drag-and-drop event listeners
+  // Attach row drag-and-drop event listeners
   const rows = document.querySelectorAll('.comp-row-draggable');
   rows.forEach((row, index) => {
-    row.addEventListener('dragstart', (e) => handleDragStart(e, index));
-    row.addEventListener('dragover', handleDragOver);
-    row.addEventListener('dragenter', handleDragEnter);
-    row.addEventListener('dragleave', handleDragLeave);
-    row.addEventListener('drop', (e) => handleDrop(e, index));
-    row.addEventListener('dragend', handleDragEnd);
+    row.addEventListener('dragstart', (e) => handleRowDragStart(e, index));
+    row.addEventListener('dragover', handleRowDragOver);
+    row.addEventListener('dragenter', handleRowDragEnter);
+    row.addEventListener('dragleave', handleRowDragLeave);
+    row.addEventListener('drop', (e) => handleRowDrop(e, index));
+    row.addEventListener('dragend', handleRowDragEnd);
+  });
+
+  // Attach column drag-and-drop event listeners
+  const columnHeaders = document.querySelectorAll('.job-column-header');
+  columnHeaders.forEach((header, index) => {
+    header.addEventListener('dragstart', (e) => handleColumnDragStart(e, index));
+    header.addEventListener('dragover', handleColumnDragOver);
+    header.addEventListener('dragenter', handleColumnDragEnter);
+    header.addEventListener('dragleave', handleColumnDragLeave);
+    header.addEventListener('drop', (e) => handleColumnDrop(e, index));
+    header.addEventListener('dragend', handleColumnDragEnd);
+  });
+
+  // Also attach to column cells for better drop targets
+  const columnCells = document.querySelectorAll('.job-column-cell');
+  columnCells.forEach(cell => {
+    const colIndex = parseInt(cell.dataset.colIndex);
+    cell.addEventListener('dragover', handleColumnDragOver);
+    cell.addEventListener('dragenter', handleColumnDragEnter);
+    cell.addEventListener('dragleave', handleColumnDragLeave);
+    cell.addEventListener('drop', (e) => handleColumnDrop(e, colIndex));
   });
 }
 
