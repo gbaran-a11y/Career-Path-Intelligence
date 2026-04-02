@@ -1583,8 +1583,18 @@ Responsibilities:
   <div id="compareTab" class="tab-content">
     <div class="content-card">
       <div class="card-header">
-        <h2 class="card-title">Job Comparison Matrix</h2>
-        <p class="card-description">Compare competency levels across all jobs. Click the level buttons (D · C · A · E) to adjust.</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <h2 class="card-title">Job Comparison Matrix</h2>
+            <p class="card-description" id="compareDescription">Compare competency levels across all jobs.</p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button id="compareViewModeBtn" class="btn btn-primary" onclick="toggleCompareMode()" style="padding: 8px 16px;">
+              <span id="compareModeIcon">📝</span>
+              <span id="compareModeText">Edit Mode</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="compare-wrapper">
         <div id="compareTable"></div>
@@ -1693,6 +1703,7 @@ let currentDepartmentId = null;
 let lastAnalysis = null;
 let lastExtractedLevel = null;
 let currentGapIssues = [];
+let compareEditMode = false; // false = view mode (show selected only), true = edit mode (show all buttons)
 
 // Competency definitions
 const COMP_DEFINITIONS = [
@@ -3484,6 +3495,37 @@ function getOrderedJobs(jobs) {
   return ordered;
 }
 
+// ===== COMPARE MODE TOGGLE =====
+
+function toggleCompareMode() {
+  compareEditMode = !compareEditMode;
+  updateCompareModeUI();
+  loadCompareTable();
+}
+
+function updateCompareModeUI() {
+  const btn = document.getElementById('compareViewModeBtn');
+  const icon = document.getElementById('compareModeIcon');
+  const text = document.getElementById('compareModeText');
+  const desc = document.getElementById('compareDescription');
+
+  if (compareEditMode) {
+    // Edit mode - show all buttons
+    icon.textContent = '👁️';
+    text.textContent = 'View Mode';
+    desc.textContent = 'Edit mode: Click the level buttons (D · C · A · E) to adjust competency levels.';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+  } else {
+    // View mode - show selected only
+    icon.textContent = '📝';
+    text.textContent = 'Edit Mode';
+    desc.textContent = 'View mode: Showing selected competency levels. Click Edit Mode to make changes.';
+    btn.classList.remove('btn-secondary');
+    btn.classList.add('btn-primary');
+  }
+}
+
 function loadCompareTable() {
   if (!currentDepartmentId) {
     document.getElementById('compareTable').innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-title">No Department Selected</div><div class="empty-description">Please select a department to compare jobs.</div></div>';
@@ -3521,15 +3563,31 @@ function loadCompareTable() {
       const level = compData ? compData.level : 'D';
 
       html += '<td class="job-column-cell" data-col-index="' + colIndex + '" style="text-align: center;">';
-      html += '<div class="level-selector">';
 
-      ['D', 'C', 'A', 'E'].forEach(l => {
-        const selectedClass = level === l ? ' selected-' + l : '';
-        html += '<button class="level-btn' + selectedClass + '" onclick="updateCompetencyLevel(' + jd.id + ', \'' + comp.name + '\', \'' + l + '\')">' + l + '</button>';
-      });
+      if (compareEditMode) {
+        // Edit mode: Show all level buttons
+        html += '<div class="level-selector">';
+        ['D', 'C', 'A', 'E'].forEach(l => {
+          const selectedClass = level === l ? ' selected-' + l : '';
+          html += '<button class="level-btn' + selectedClass + '" onclick="updateCompetencyLevel(' + jd.id + ', \'' + comp.name + '\', \'' + l + '\')">' + l + '</button>';
+        });
+        html += '</div>';
+        html += '<div class="level-name">' + getLevelName(level) + '</div>';
+      } else {
+        // View mode: Show only selected level as badge
+        const levelColors = {
+          'D': { bg: '#fff7ed', color: '#9a3412', border: '#fb923c' },
+          'C': { bg: '#dbeafe', color: '#1e3a8a', border: '#60a5fa' },
+          'A': { bg: '#f3e8ff', color: '#6b21a8', border: '#a78bfa' },
+          'E': { bg: '#e6f9fb', color: '#005f6b', border: '#00d4e5' }
+        };
+        const colors = levelColors[level];
+        html += '<div style="display: inline-flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px;">';
+        html += '<div style="background: ' + colors.bg + '; color: ' + colors.color + '; border: 2px solid ' + colors.border + '; padding: 8px 16px; border-radius: 8px; font-size: 18px; font-weight: 700; min-width: 50px; text-align: center;">' + level + '</div>';
+        html += '<div style="font-size: 11px; color: var(--gray-600); font-weight: 500;">' + getLevelName(level) + '</div>';
+        html += '</div>';
+      }
 
-      html += '</div>';
-      html += '<div class="level-name">' + getLevelName(level) + '</div>';
       html += '</td>';
     });
 
@@ -4471,6 +4529,7 @@ function showTab(tabName) {
   } else if (tabName === 'compare') {
     document.querySelectorAll('.nav-tab')[2].classList.add('active');
     document.getElementById('compareTab').classList.add('active');
+    updateCompareModeUI();
     loadCompareTable();
   } else if (tabName === 'career') {
     document.querySelectorAll('.nav-tab')[3].classList.add('active');
