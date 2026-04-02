@@ -635,6 +635,48 @@
       text-align: center;
     }
 
+    /* Drag and Drop for Competency Rows */
+    .comp-row-draggable {
+      cursor: move;
+      transition: all 0.2s;
+    }
+
+    .comp-row-draggable.dragging {
+      opacity: 0.5;
+      background: var(--gray-100);
+    }
+
+    .comp-row-draggable.drag-over {
+      border-top: 3px solid var(--primary-500);
+    }
+
+    .drag-handle {
+      display: inline-block;
+      cursor: grab;
+      padding: 4px 8px;
+      margin-right: 8px;
+      color: var(--gray-400);
+      user-select: none;
+      transition: color 0.2s;
+    }
+
+    .drag-handle:hover {
+      color: var(--primary-500);
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .comp-cell-content {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .comp-text-wrapper {
+      flex: 1;
+    }
+
     /* Career Path */
     .career-container {
       padding: 24px;
@@ -2351,6 +2393,110 @@ function confirmDeleteJob(id) {
 
 // ===== COMPARE TABLE =====
 
+// ===== COMPETENCY ORDER MANAGEMENT =====
+
+function getCompetencyOrder() {
+  if (!currentDepartmentId) return null;
+
+  const key = 'competencyOrder_' + currentDepartmentId;
+  const saved = localStorage.getItem(key);
+
+  if (saved) {
+    return JSON.parse(saved);
+  }
+
+  // Return default order
+  return COMP_DEFINITIONS.map(c => c.name);
+}
+
+function saveCompetencyOrder(order) {
+  if (!currentDepartmentId) return;
+
+  const key = 'competencyOrder_' + currentDepartmentId;
+  localStorage.setItem(key, JSON.stringify(order));
+}
+
+function getOrderedCompetencies() {
+  const order = getCompetencyOrder();
+  if (!order) return COMP_DEFINITIONS;
+
+  // Reorder based on saved order
+  const ordered = [];
+  order.forEach(name => {
+    const comp = COMP_DEFINITIONS.find(c => c.name === name);
+    if (comp) ordered.push(comp);
+  });
+
+  // Add any new competencies that weren't in the saved order
+  COMP_DEFINITIONS.forEach(comp => {
+    if (!ordered.find(c => c.name === comp.name)) {
+      ordered.push(comp);
+    }
+  });
+
+  return ordered;
+}
+
+// ===== DRAG AND DROP HANDLERS =====
+
+let draggedRowIndex = null;
+
+function handleDragStart(e, index) {
+  draggedRowIndex = index;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e, dropIndex) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
+  e.currentTarget.classList.remove('drag-over');
+
+  if (draggedRowIndex !== null && draggedRowIndex !== dropIndex) {
+    const orderedComps = getOrderedCompetencies();
+    const order = orderedComps.map(c => c.name);
+
+    // Move item from draggedRowIndex to dropIndex
+    const [removed] = order.splice(draggedRowIndex, 1);
+    order.splice(dropIndex, 0, removed);
+
+    saveCompetencyOrder(order);
+    loadCompareTable();
+  }
+
+  return false;
+}
+
+function handleDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+
+  // Remove all drag-over classes
+  document.querySelectorAll('.comp-row-draggable').forEach(row => {
+    row.classList.remove('drag-over');
+  });
+
+  draggedRowIndex = null;
+}
+
 function loadCompareTable() {
   if (!currentDepartmentId) {
     document.getElementById('compareTable').innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-title">No Department Selected</div><div class="empty-description">Please select a department to compare jobs.</div></div>';
@@ -2366,15 +2512,17 @@ function loadCompareTable() {
   }
 
   let html = '<table class="compare-table"><thead><tr>';
-  html += '<th>Competency</th>';
+  html += '<th><span title="Drag rows to reorder">Competency</span> <span style="font-size: 11px; color: var(--gray-400);">↕️</span></th>';
   jds.forEach(jd => {
     html += '<th>' + jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span></th>';
   });
-  html += '</tr></thead><tbody>';
+  html += '</tr></thead><tbody id="compareTableBody">';
 
-  COMP_DEFINITIONS.forEach(comp => {
-    html += '<tr>';
-    html += '<td><div class="comp-name">' + comp.name + '</div><div class="comp-desc">' + comp.desc + '</div></td>';
+  const orderedComps = getOrderedCompetencies();
+
+  orderedComps.forEach((comp, index) => {
+    html += '<tr class="comp-row-draggable" draggable="true" data-index="' + index + '">';
+    html += '<td><div class="comp-cell-content"><span class="drag-handle" title="Drag to reorder">⋮⋮</span><div class="comp-text-wrapper"><div class="comp-name">' + comp.name + '</div><div class="comp-desc">' + comp.desc + '</div></div></div></td>';
 
     jds.forEach(jd => {
       const compData = jd.results.find(c => c.name === comp.name);
@@ -2398,6 +2546,17 @@ function loadCompareTable() {
 
   html += '</tbody></table>';
   document.getElementById('compareTable').innerHTML = html;
+
+  // Attach drag-and-drop event listeners
+  const rows = document.querySelectorAll('.comp-row-draggable');
+  rows.forEach((row, index) => {
+    row.addEventListener('dragstart', (e) => handleDragStart(e, index));
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('dragenter', handleDragEnter);
+    row.addEventListener('dragleave', handleDragLeave);
+    row.addEventListener('drop', (e) => handleDrop(e, index));
+    row.addEventListener('dragend', handleDragEnd);
+  });
 }
 
 function updateCompetencyLevel(jobId, compName, newLevel) {
