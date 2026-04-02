@@ -1687,36 +1687,296 @@ const COMP_DEFINITIONS = [
 
 const DEFAULT_COMPETENCY_LIBRARY = {
   'Security': [
-    { name: 'Vulnerability Assessment', desc: 'Identifies and evaluates security vulnerabilities', keywords: ['vulnerability', 'scanning', 'assessment', 'pentesting', 'security testing'] },
-    { name: 'Threat Analysis', desc: 'Analyzes and responds to security threats', keywords: ['threat', 'analysis', 'intelligence', 'threat hunting', 'IOC'] },
-    { name: 'Incident Response', desc: 'Manages and resolves security incidents', keywords: ['incident', 'response', 'breach', 'forensics', 'investigation'] },
-    { name: 'Security Architecture', desc: 'Designs secure systems and infrastructure', keywords: ['architecture', 'secure design', 'security controls', 'defense in depth'] },
-    { name: 'Compliance & Governance', desc: 'Ensures regulatory compliance and security governance', keywords: ['compliance', 'governance', 'audit', 'SOC2', 'ISO', 'NIST', 'GDPR'] },
-    { name: 'Identity & Access Management', desc: 'Manages authentication and authorization systems', keywords: ['IAM', 'authentication', 'authorization', 'SSO', 'SAML', 'OAuth'] },
-    { name: 'Network Security', desc: 'Secures network infrastructure and communications', keywords: ['network', 'firewall', 'IDS', 'IPS', 'VPN', 'segmentation'] },
-    { name: 'Application Security', desc: 'Identifies and remediates application vulnerabilities', keywords: ['AppSec', 'SAST', 'DAST', 'code review', 'secure coding'] },
-    { name: 'Cloud Security', desc: 'Secures cloud infrastructure and services', keywords: ['cloud', 'AWS', 'Azure', 'GCP', 'CSPM', 'CWPP'] },
-    { name: 'Security Operations', desc: 'Monitors and maintains security infrastructure', keywords: ['SOC', 'SIEM', 'monitoring', 'detection', 'security operations'] },
-    { name: 'Risk Management', desc: 'Identifies, assesses, and mitigates risks', keywords: ['risk', 'risk assessment', 'mitigation', 'risk management'] },
-    { name: 'Cryptography', desc: 'Implements cryptographic solutions', keywords: ['encryption', 'cryptography', 'PKI', 'TLS', 'hashing'] }
+    {
+      name: 'Vulnerability Assessment',
+      desc: 'Identifies and evaluates security vulnerabilities',
+      keywords: ['vulnerability', 'scanning', 'assessment', 'pentesting', 'security testing'],
+      levels: {
+        D: 'Learns vulnerability scanning tools under guidance; identifies basic vulnerabilities with supervision',
+        C: 'Independently conducts vulnerability assessments; interprets scan results and prioritizes findings',
+        A: 'Leads complex assessments; develops custom testing methodologies; mentors others on advanced techniques',
+        E: 'Industry-recognized expert; authors vulnerability assessment frameworks; speaks at conferences'
+      }
+    },
+    {
+      name: 'Threat Analysis',
+      desc: 'Analyzes and responds to security threats',
+      keywords: ['threat', 'analysis', 'intelligence', 'threat hunting', 'IOC'],
+      levels: {
+        D: 'Reviews threat intelligence feeds; learns to identify IOCs with guidance',
+        C: 'Analyzes threat actors and TTPs; correlates indicators; produces threat reports',
+        A: 'Leads threat hunting operations; develops detection rules; advises on emerging threats',
+        E: 'Published threat researcher; develops threat intelligence frameworks; recognized industry authority'
+      }
+    },
+    {
+      name: 'Incident Response',
+      desc: 'Manages and resolves security incidents',
+      keywords: ['incident', 'response', 'breach', 'forensics', 'investigation'],
+      levels: {
+        D: 'Participates in incident response; collects evidence under direction',
+        C: 'Independently investigates incidents; contains threats; documents findings',
+        A: 'Leads major incident response; performs advanced forensics; designs IR playbooks',
+        E: 'CISO-level authority; authors industry IR standards; expert witness in breach litigation'
+      }
+    },
+    {
+      name: 'Security Architecture',
+      desc: 'Designs secure systems and infrastructure',
+      keywords: ['architecture', 'secure design', 'security controls', 'defense in depth'],
+      levels: {
+        D: 'Learns security architecture principles; assists with design reviews',
+        C: 'Designs secure solutions for specific systems; implements security controls',
+        A: 'Architects enterprise-wide security; defines security standards; leads design authority',
+        E: 'Industry thought leader; publishes security architectures; defines industry frameworks'
+      }
+    },
+    {
+      name: 'Compliance & Governance',
+      desc: 'Ensures regulatory compliance and security governance',
+      keywords: ['compliance', 'governance', 'audit', 'SOC2', 'ISO', 'NIST', 'GDPR'],
+      levels: {
+        D: 'Learns compliance requirements; assists with evidence collection',
+        C: 'Manages compliance programs; coordinates audits; implements controls',
+        A: 'Leads multi-framework compliance; advises executives; designs governance programs',
+        E: 'Certified lead auditor; authors compliance standards; testifies as subject matter expert'
+      }
+    },
+    {
+      name: 'Identity & Access Management',
+      desc: 'Manages authentication and authorization systems',
+      keywords: ['IAM', 'authentication', 'authorization', 'SSO', 'SAML', 'OAuth'],
+      levels: {
+        D: 'Learns IAM concepts; manages basic user access provisioning',
+        C: 'Implements SSO and MFA; manages identity lifecycle; troubleshoots authentication',
+        A: 'Architects enterprise IAM; integrates complex systems; defines access governance',
+        E: 'IAM thought leader; contributes to OIDC/SAML standards; recognized industry expert'
+      }
+    },
+    {
+      name: 'Network Security',
+      desc: 'Secures network infrastructure and communications',
+      keywords: ['network', 'firewall', 'IDS', 'IPS', 'VPN', 'segmentation'],
+      levels: {
+        D: 'Learns firewall rules; assists with network monitoring',
+        C: 'Manages network security devices; implements segmentation; analyzes traffic',
+        A: 'Designs zero-trust networks; leads security architecture; mentors security engineers',
+        E: 'Published author on network security; speaks at Black Hat/DEF CON; creates industry tools'
+      }
+    },
+    {
+      name: 'Application Security',
+      desc: 'Identifies and remediates application vulnerabilities',
+      keywords: ['AppSec', 'SAST', 'DAST', 'code review', 'secure coding'],
+      levels: {
+        D: 'Learns secure coding basics; identifies common vulnerabilities (OWASP Top 10)',
+        C: 'Performs security code reviews; runs SAST/DAST; remediates vulnerabilities',
+        A: 'Builds AppSec programs; develops security champions; creates secure SDLC',
+        E: 'OWASP project leader; discovers novel vulnerability classes; CVE author'
+      }
+    },
+    {
+      name: 'Cloud Security',
+      desc: 'Secures cloud infrastructure and services',
+      keywords: ['cloud', 'AWS', 'Azure', 'GCP', 'CSPM', 'CWPP'],
+      levels: {
+        D: 'Learns cloud security basics; follows security baselines',
+        C: 'Secures cloud workloads; implements CSPM; manages cloud IAM',
+        A: 'Architects multi-cloud security; designs cloud-native security; leads cloud transformation',
+        E: 'AWS/Azure/GCP Security Hero; publishes cloud security frameworks; conference keynote speaker'
+      }
+    },
+    {
+      name: 'Security Operations',
+      desc: 'Monitors and maintains security infrastructure',
+      keywords: ['SOC', 'SIEM', 'monitoring', 'detection', 'security operations'],
+      levels: {
+        D: 'Monitors security alerts; escalates incidents; learns SIEM basics',
+        C: 'Triages and investigates alerts; tunes detection rules; responds to incidents',
+        A: 'Manages SOC operations; designs detection engineering; optimizes security stack',
+        E: 'Published SOC leader; creates detection-as-code frameworks; industry-recognized authority'
+      }
+    },
+    {
+      name: 'Risk Management',
+      desc: 'Identifies, assesses, and mitigates risks',
+      keywords: ['risk', 'risk assessment', 'mitigation', 'risk management'],
+      levels: {
+        D: 'Participates in risk assessments; learns risk frameworks',
+        C: 'Conducts risk assessments; calculates risk scores; tracks remediation',
+        A: 'Leads enterprise risk program; advises executives; defines risk appetite',
+        E: 'CISO-level authority; authors risk frameworks; board-level risk advisor'
+      }
+    },
+    {
+      name: 'Cryptography',
+      desc: 'Implements cryptographic solutions',
+      keywords: ['encryption', 'cryptography', 'PKI', 'TLS', 'hashing'],
+      levels: {
+        D: 'Learns cryptographic concepts; implements standard encryption',
+        C: 'Designs cryptographic solutions; manages PKI; implements TLS correctly',
+        A: 'Cryptographic architect; audits crypto implementations; designs key management',
+        E: 'Published cryptographer; contributes to standards (NIST, IETF); discovers vulnerabilities'
+      }
+    }
   ],
   'Engineering': [
-    { name: 'Software Development', desc: 'Designs and builds software applications', keywords: ['coding', 'programming', 'development', 'software engineering'] },
-    { name: 'System Architecture', desc: 'Designs scalable system architectures', keywords: ['architecture', 'system design', 'scalability', 'microservices'] },
-    { name: 'DevOps & CI/CD', desc: 'Implements automation and deployment pipelines', keywords: ['DevOps', 'CI/CD', 'Jenkins', 'pipeline', 'automation'] },
-    { name: 'Database Management', desc: 'Designs and optimizes databases', keywords: ['database', 'SQL', 'NoSQL', 'schema', 'query optimization'] },
-    { name: 'API Design', desc: 'Designs and implements APIs', keywords: ['API', 'REST', 'GraphQL', 'integration', 'microservices'] },
-    { name: 'Testing & Quality Assurance', desc: 'Ensures software quality through testing', keywords: ['testing', 'QA', 'test automation', 'unit testing', 'integration testing'] },
-    { name: 'Performance Optimization', desc: 'Optimizes application performance', keywords: ['performance', 'optimization', 'profiling', 'scalability', 'tuning'] },
-    { name: 'Code Review', desc: 'Reviews and improves code quality', keywords: ['code review', 'peer review', 'quality', 'best practices'] },
-    { name: 'Technical Documentation', desc: 'Creates comprehensive technical documentation', keywords: ['documentation', 'technical writing', 'API docs', 'architecture docs'] },
-    { name: 'Agile Methodologies', desc: 'Applies agile development practices', keywords: ['agile', 'scrum', 'sprint', 'kanban', 'backlog'] }
+    {
+      name: 'Software Development',
+      desc: 'Designs and builds software applications',
+      keywords: ['coding', 'programming', 'development', 'software engineering'],
+      levels: {
+        D: 'Writes code with guidance; fixes bugs; learns frameworks and best practices',
+        C: 'Independently implements features; writes clean, tested code; debugs complex issues',
+        A: 'Designs system components; mentors developers; leads technical initiatives',
+        E: 'Defines engineering standards; open-source contributor; recognized technical authority'
+      }
+    },
+    {
+      name: 'System Architecture',
+      desc: 'Designs scalable system architectures',
+      keywords: ['architecture', 'system design', 'scalability', 'microservices'],
+      levels: {
+        D: 'Learns architecture patterns; understands system design fundamentals',
+        C: 'Designs components and services; makes informed architecture decisions',
+        A: 'Architects complex distributed systems; defines technical strategy; leads architecture reviews',
+        E: 'Industry thought leader; published architect; defines industry patterns and practices'
+      }
+    },
+    {
+      name: 'DevOps & CI/CD',
+      desc: 'Implements automation and deployment pipelines',
+      keywords: ['DevOps', 'CI/CD', 'Jenkins', 'pipeline', 'automation'],
+      levels: {
+        D: 'Learns CI/CD concepts; maintains existing pipelines with support',
+        C: 'Builds and maintains CI/CD pipelines; implements infrastructure as code',
+        A: 'Designs DevOps strategy; automates complex workflows; leads platform engineering',
+        E: 'Published DevOps leader; creates widely-used tools; conference speaker'
+      }
+    },
+    {
+      name: 'Database Management',
+      desc: 'Designs and optimizes databases',
+      keywords: ['database', 'SQL', 'NoSQL', 'schema', 'query optimization'],
+      levels: {
+        D: 'Writes basic queries; learns database concepts; performs CRUD operations',
+        C: 'Designs schemas; optimizes queries; manages database performance',
+        A: 'Architects data systems; designs for scale; leads database strategy',
+        E: 'Database authority; contributes to database engines; published expert'
+      }
+    },
+    {
+      name: 'API Design',
+      desc: 'Designs and implements APIs',
+      keywords: ['API', 'REST', 'GraphQL', 'integration', 'microservices'],
+      levels: {
+        D: 'Implements API endpoints following existing patterns',
+        C: 'Designs RESTful APIs; documents APIs; handles versioning and errors',
+        A: 'Architects API strategy; defines API standards; designs for developer experience',
+        E: 'Published API expert; contributes to API specifications; industry thought leader'
+      }
+    },
+    {
+      name: 'Testing & Quality Assurance',
+      desc: 'Ensures software quality through testing',
+      keywords: ['testing', 'QA', 'test automation', 'unit testing', 'integration testing'],
+      levels: {
+        D: 'Writes unit tests; learns testing frameworks; performs manual testing',
+        C: 'Designs test strategies; builds test automation; ensures code coverage',
+        A: 'Defines QA processes; leads test engineering; builds testing infrastructure',
+        E: 'Testing thought leader; creates testing frameworks; conference speaker'
+      }
+    },
+    {
+      name: 'Performance Optimization',
+      desc: 'Optimizes application performance',
+      keywords: ['performance', 'optimization', 'profiling', 'scalability', 'tuning'],
+      levels: {
+        D: 'Learns profiling tools; identifies basic performance issues',
+        C: 'Independently optimizes code; uses profilers effectively; improves system performance',
+        A: 'Designs for performance; leads optimization initiatives; mentors on performance',
+        E: 'Performance engineering expert; publishes optimization techniques; creates benchmarking tools'
+      }
+    },
+    {
+      name: 'Code Review',
+      desc: 'Reviews and improves code quality',
+      keywords: ['code review', 'peer review', 'quality', 'best practices'],
+      levels: {
+        D: 'Participates in code reviews; learns code quality principles',
+        C: 'Provides thorough code reviews; identifies bugs and improvements',
+        A: 'Sets code quality standards; mentors through reviews; leads quality initiatives',
+        E: 'Defines industry code review practices; publishes on code quality'
+      }
+    },
+    {
+      name: 'Technical Documentation',
+      desc: 'Creates comprehensive technical documentation',
+      keywords: ['documentation', 'technical writing', 'API docs', 'architecture docs'],
+      levels: {
+        D: 'Documents code and features; maintains basic documentation',
+        C: 'Creates clear technical docs; writes API documentation; maintains architecture docs',
+        A: 'Defines documentation standards; builds docs-as-code systems; leads documentation strategy',
+        E: 'Published technical author; creates documentation frameworks; conference speaker'
+      }
+    },
+    {
+      name: 'Agile Methodologies',
+      desc: 'Applies agile development practices',
+      keywords: ['agile', 'scrum', 'sprint', 'kanban', 'backlog'],
+      levels: {
+        D: 'Participates in agile ceremonies; learns agile principles',
+        C: 'Independently practices agile; estimates work; contributes to sprint planning',
+        A: 'Scrum Master or agile coach; improves team processes; leads agile transformation',
+        E: 'Certified agile trainer; published agile expert; organizational agile authority'
+      }
+    }
   ],
   'Product': [
-    { name: 'Product Strategy', desc: 'Defines product vision and roadmap', keywords: ['strategy', 'vision', 'roadmap', 'product planning'] },
-    { name: 'Market Research', desc: 'Conducts market and competitive analysis', keywords: ['market research', 'competitive analysis', 'user research', 'market analysis'] },
-    { name: 'User Experience Design', desc: 'Designs intuitive user experiences', keywords: ['UX', 'user experience', 'design', 'usability', 'user interface'] },
-    { name: 'Product Analytics', desc: 'Analyzes product metrics and user behavior', keywords: ['analytics', 'metrics', 'data analysis', 'KPI', 'user behavior'] },
+    {
+      name: 'Product Strategy',
+      desc: 'Defines product vision and roadmap',
+      keywords: ['strategy', 'vision', 'roadmap', 'product planning'],
+      levels: {
+        D: 'Learns product strategy; contributes to roadmap discussions',
+        C: 'Defines feature roadmaps; prioritizes based on user value and business impact',
+        A: 'Defines product vision; leads multi-year strategy; influences company direction',
+        E: 'CPO-level authority; published thought leader; defines industry trends'
+      }
+    },
+    {
+      name: 'Market Research',
+      desc: 'Conducts market and competitive analysis',
+      keywords: ['market research', 'competitive analysis', 'user research', 'market analysis'],
+      levels: {
+        D: 'Conducts user interviews; learns research methodologies',
+        C: 'Leads research initiatives; synthesizes insights; informs product decisions',
+        A: 'Defines research strategy; builds research practice; advises on market positioning',
+        E: 'Published researcher; creates research methodologies; industry authority'
+      }
+    },
+    {
+      name: 'User Experience Design',
+      desc: 'Designs intuitive user experiences',
+      keywords: ['UX', 'user experience', 'design', 'usability', 'user interface'],
+      levels: {
+        D: 'Creates wireframes and mockups; learns design principles',
+        C: 'Designs end-to-end experiences; conducts usability testing; iterates based on feedback',
+        A: 'Defines design system; leads design strategy; mentors designers',
+        E: 'Published UX expert; creates design frameworks used industry-wide; conference speaker'
+      }
+    },
+    {
+      name: 'Product Analytics',
+      desc: 'Analyzes product metrics and user behavior',
+      keywords: ['analytics', 'metrics', 'data analysis', 'KPI', 'user behavior'],
+      levels: {
+        D: 'Tracks basic metrics; learns analytics tools; creates dashboards',
+        C: 'Defines metrics and KPIs; analyzes user funnels; drives data-informed decisions',
+        A: 'Builds analytics strategy; implements instrumentation; leads experimentation culture',
+        E: 'Published analytics expert; creates analytics frameworks; industry thought leader'
+      }
+    },
     { name: 'Stakeholder Management', desc: 'Manages stakeholder relationships and expectations', keywords: ['stakeholder', 'communication', 'alignment', 'executive'] },
     { name: 'Requirements Gathering', desc: 'Defines and prioritizes product requirements', keywords: ['requirements', 'user stories', 'backlog', 'prioritization'] },
     { name: 'Go-to-Market Strategy', desc: 'Plans product launches and marketing', keywords: ['GTM', 'launch', 'marketing', 'positioning', 'messaging'] },
@@ -1776,15 +2036,105 @@ const DEFAULT_COMPETENCY_LIBRARY = {
     { name: 'Investor Relations', desc: 'Manages relationships with investors', keywords: ['investor relations', 'IR', 'investors', 'earnings'] }
   ],
   'Leadership': [
-    { name: 'Strategic Planning', desc: 'Develops long-term strategy and vision', keywords: ['strategy', 'strategic planning', 'vision', 'mission'] },
-    { name: 'Team Building', desc: 'Builds and develops high-performing teams', keywords: ['team building', 'team development', 'hiring', 'culture'] },
-    { name: 'Change Management', desc: 'Leads organizational change initiatives', keywords: ['change', 'transformation', 'change management', 'adoption'] },
-    { name: 'Executive Communication', desc: 'Communicates effectively with executives and board', keywords: ['executive', 'board', 'C-level', 'presentation'] },
-    { name: 'Business Acumen', desc: 'Understands business operations and drivers', keywords: ['business', 'commercial', 'P&L', 'revenue'] },
-    { name: 'Decision Making', desc: 'Makes informed strategic decisions', keywords: ['decision', 'judgment', 'critical thinking', 'analysis'] },
-    { name: 'Coaching & Mentoring', desc: 'Coaches and mentors leaders and teams', keywords: ['coaching', 'mentoring', 'development', 'feedback'] },
-    { name: 'Conflict Resolution', desc: 'Resolves conflicts and builds consensus', keywords: ['conflict', 'resolution', 'consensus', 'mediation'] },
-    { name: 'Cross-functional Leadership', desc: 'Leads across organizational boundaries', keywords: ['cross-functional', 'collaboration', 'influence', 'alignment'] }
+    {
+      name: 'Strategic Planning',
+      desc: 'Develops long-term strategy and vision',
+      keywords: ['strategy', 'strategic planning', 'vision', 'mission'],
+      levels: {
+        D: 'Participates in strategy discussions; learns strategic frameworks',
+        C: 'Develops team-level strategy; aligns initiatives to company goals',
+        A: 'Leads department strategy; defines multi-year roadmaps; advises executives',
+        E: 'Sets organizational vision; board-level strategist; published thought leader'
+      }
+    },
+    {
+      name: 'Team Building',
+      desc: 'Builds and develops high-performing teams',
+      keywords: ['team building', 'team development', 'hiring', 'culture'],
+      levels: {
+        D: 'Collaborates effectively; participates in team activities',
+        C: 'Leads small teams; hires and onboards; builds team culture',
+        A: 'Builds high-performing organizations; scales teams; develops leaders',
+        E: 'Renowned people leader; builds iconic teams; published on leadership'
+      }
+    },
+    {
+      name: 'Change Management',
+      desc: 'Leads organizational change initiatives',
+      keywords: ['change', 'transformation', 'change management', 'adoption'],
+      levels: {
+        D: 'Adapts to change; supports change initiatives',
+        C: 'Leads team-level change; manages stakeholder concerns; drives adoption',
+        A: 'Leads organizational transformation; designs change programs; overcomes resistance',
+        E: 'Change management authority; leads enterprise transformation; published expert'
+      }
+    },
+    {
+      name: 'Executive Communication',
+      desc: 'Communicates effectively with executives and board',
+      keywords: ['executive', 'board', 'C-level', 'presentation'],
+      levels: {
+        D: 'Communicates clearly with peers and managers',
+        C: 'Presents to directors and VPs; synthesizes complex information',
+        A: 'Regularly presents to C-suite; influences executive decisions; storytells with data',
+        E: 'Board-level communicator; keynote speaker; published on executive communication'
+      }
+    },
+    {
+      name: 'Business Acumen',
+      desc: 'Understands business operations and drivers',
+      keywords: ['business', 'commercial', 'P&L', 'revenue'],
+      levels: {
+        D: 'Learns business fundamentals; understands department role',
+        C: 'Understands P&L; makes business-informed decisions; tracks key metrics',
+        A: 'Manages P&L; drives business outcomes; partners with business leaders',
+        E: 'Executive business leader; defines business strategy; board-level advisor'
+      }
+    },
+    {
+      name: 'Decision Making',
+      desc: 'Makes informed strategic decisions',
+      keywords: ['decision', 'judgment', 'critical thinking', 'analysis'],
+      levels: {
+        D: 'Makes tactical decisions with guidance; learns decision frameworks',
+        C: 'Makes independent decisions; uses data and judgment; accepts accountability',
+        A: 'Makes strategic decisions; handles ambiguity; influences organizational direction',
+        E: 'Strategic decision authority; defines decision frameworks; trusted C-suite advisor'
+      }
+    },
+    {
+      name: 'Coaching & Mentoring',
+      desc: 'Coaches and mentors leaders and teams',
+      keywords: ['coaching', 'mentoring', 'development', 'feedback'],
+      levels: {
+        D: 'Receives coaching well; learns to give feedback',
+        C: 'Mentors team members; provides developmental feedback; coaches peers',
+        A: 'Coaches leaders; develops high potentials; builds coaching culture',
+        E: 'Executive coach; certified coach practitioner; published on leadership development'
+      }
+    },
+    {
+      name: 'Conflict Resolution',
+      desc: 'Resolves conflicts and builds consensus',
+      keywords: ['conflict', 'resolution', 'consensus', 'mediation'],
+      levels: {
+        D: 'Handles interpersonal conflicts constructively',
+        C: 'Mediates team conflicts; builds consensus; negotiates win-win outcomes',
+        A: 'Resolves complex organizational conflicts; builds coalitions; influences without authority',
+        E: 'Organizational mediator; trusted by C-suite for sensitive issues; published expert'
+      }
+    },
+    {
+      name: 'Cross-functional Leadership',
+      desc: 'Leads across organizational boundaries',
+      keywords: ['cross-functional', 'collaboration', 'influence', 'alignment'],
+      levels: {
+        D: 'Collaborates with other teams; builds cross-functional relationships',
+        C: 'Leads cross-functional projects; aligns stakeholders; drives outcomes',
+        A: 'Leads complex cross-functional initiatives; builds organizational alignment; influences strategy',
+        E: 'Enterprise leader; aligns entire organization; trusted by board and CEO'
+      }
+    }
   ]
 };
 
@@ -1836,15 +2186,29 @@ function loadCompetencyLibrary() {
     } else {
       html += '<div style="display: grid; gap: 12px;">';
       comps.forEach((comp, index) => {
+        const compId = dept + '_' + index;
+        const hasLevels = comp.levels && (comp.levels.D || comp.levels.C || comp.levels.A || comp.levels.E);
+
         html += '<div class="position-card" style="padding: 16px;">';
         html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">';
         html += '<div style="flex: 1;">';
-        html += '<div style="font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">' + comp.name + '</div>';
+        html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">';
+        html += '<div style="font-weight: 600; color: var(--gray-900);">' + comp.name + '</div>';
+        if (hasLevels) {
+          html += '<span style="background: var(--primary-50); color: var(--primary-700); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;">📊 LEVELED</span>';
+        }
+        html += '</div>';
         html += '<div style="font-size: 13px; color: var(--gray-600);">' + comp.desc + '</div>';
         html += '</div>';
+        html += '<div style="display: flex; gap: 6px;">';
+        if (hasLevels) {
+          html += '<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="toggleCompetencyLevels(\'' + compId + '\')">View Levels</button>';
+        }
         html += '<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="deleteCompetency(\'' + dept + '\', ' + index + ')">Delete</button>';
         html += '</div>';
+        html += '</div>';
 
+        // Keywords
         if (comp.keywords && comp.keywords.length > 0) {
           html += '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">';
           comp.keywords.forEach(keyword => {
@@ -1852,6 +2216,57 @@ function loadCompetencyLibrary() {
           });
           html += '</div>';
         }
+
+        // Level definitions (initially hidden)
+        if (hasLevels) {
+          html += '<div id="levels_' + compId + '" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">';
+          html += '<div style="font-weight: 600; color: var(--gray-900); margin-bottom: 12px; font-size: 14px;">📈 Proficiency Level Progression</div>';
+          html += '<div style="display: grid; gap: 10px;">';
+
+          if (comp.levels.D) {
+            html += '<div style="padding: 12px; background: #fff7ed; border-left: 3px solid #fb923c; border-radius: 6px;">';
+            html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
+            html += '<span style="background: #fff7ed; color: #9a3412; border: 1px solid #fb923c; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">D</span>';
+            html += '<span style="font-weight: 600; color: #9a3412;">Developing</span>';
+            html += '</div>';
+            html += '<div style="font-size: 13px; color: #9a3412; line-height: 1.5;">' + comp.levels.D + '</div>';
+            html += '</div>';
+          }
+
+          if (comp.levels.C) {
+            html += '<div style="padding: 12px; background: #dbeafe; border-left: 3px solid #60a5fa; border-radius: 6px;">';
+            html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
+            html += '<span style="background: #dbeafe; color: #1e3a8a; border: 1px solid #60a5fa; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">C</span>';
+            html += '<span style="font-weight: 600; color: #1e3a8a;">Competent</span>';
+            html += '</div>';
+            html += '<div style="font-size: 13px; color: #1e3a8a; line-height: 1.5;">' + comp.levels.C + '</div>';
+            html += '</div>';
+          }
+
+          if (comp.levels.A) {
+            html += '<div style="padding: 12px; background: #f3e8ff; border-left: 3px solid #a78bfa; border-radius: 6px;">';
+            html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
+            html += '<span style="background: #f3e8ff; color: #6b21a8; border: 1px solid #a78bfa; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">A</span>';
+            html += '<span style="font-weight: 600; color: #6b21a8;">Advanced</span>';
+            html += '</div>';
+            html += '<div style="font-size: 13px; color: #6b21a8; line-height: 1.5;">' + comp.levels.A + '</div>';
+            html += '</div>';
+          }
+
+          if (comp.levels.E) {
+            html += '<div style="padding: 12px; background: #e6f9fb; border-left: 3px solid #00d4e5; border-radius: 6px; box-shadow: 0 0 8px rgba(0, 212, 229, 0.2);">';
+            html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
+            html += '<span style="background: #e6f9fb; color: #005f6b; border: 1px solid #00d4e5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">E</span>';
+            html += '<span style="font-weight: 600; color: #005f6b;">Expert</span>';
+            html += '</div>';
+            html += '<div style="font-size: 13px; color: #005f6b; line-height: 1.5;">' + comp.levels.E + '</div>';
+            html += '</div>';
+          }
+
+          html += '</div>';
+          html += '</div>';
+        }
+
         html += '</div>';
       });
       html += '</div>';
@@ -1861,6 +2276,17 @@ function loadCompetencyLibrary() {
   });
 
   container.innerHTML = html;
+}
+
+function toggleCompetencyLevels(compId) {
+  const element = document.getElementById('levels_' + compId);
+  if (element) {
+    if (element.style.display === 'none') {
+      element.style.display = 'block';
+    } else {
+      element.style.display = 'none';
+    }
+  }
 }
 
 function deleteCompetency(dept, index) {
