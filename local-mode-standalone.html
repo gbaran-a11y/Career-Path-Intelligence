@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Intelligence Platform - Local Mode</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F8FAFC;
+      padding: 20px;
+      color: #0F172A;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .banner {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%);
+      color: white;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .banner-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .banner-subtitle { font-size: 13px; opacity: 0.8; }
+    .status {
+      background: rgba(59, 130, 246, 0.3);
+      padding: 4px 12px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .btn {
+      background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: #EFF6FF;
+      color: #1E40AF;
+      border: 1px solid #93C5FD;
+    }
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .comp-row {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border: 1px solid #E2E8F0;
+    }
+    .comp-name { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+    .comp-desc { font-size: 12px; color: #64748B; }
+    .level-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-top: 6px;
+    }
+    .level-D { background: #FAEEDA; color: #633806; border: 1px solid #F0C27A; }
+    .level-C { background: #E6F1FB; color: #0C447C; border: 1px solid #85B7EB; }
+    .level-A { background: #E1F5EE; color: #085041; border: 1px solid #5DCAA5; }
+    .level-E { background: #EEEDFE; color: #3C3489; border: 1px solid #AFA9EC; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .metric {
+      background: #F8FAFC;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .metric-label { font-size: 11px; color: #64748B; margin-bottom: 4px; }
+    .metric-value { font-size: 24px; font-weight: 500; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748B;
+      margin: 20px 0 10px;
+    }
+    .hidden { display: none; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #E2E8F0;
+      padding-bottom: 0;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #64748B;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-family: inherit;
+    }
+    .tab-btn.active {
+      color: #3B82F6;
+      border-bottom-color: #3B82F6;
+    }
+    .tab-btn:hover { color: #3B82F6; opacity: 0.8; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .saved-list { display: flex; flex-direction: column; gap: 12px; }
+    .saved-item {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .saved-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+    .saved-item-title { font-size: 16px; font-weight: 600; color: #0F172A; }
+    .saved-item-date { font-size: 12px; color: #64748B; margin-top: 4px; }
+    .saved-item-actions { display: flex; gap: 8px; }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #EFF6FF;
+      color: #1E40AF;
+      border: 1px solid #93C5FD;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-small:hover { opacity: 0.9; }
+    .btn-danger {
+      background: #FEE2E2;
+      color: #991B1B;
+      border-color: #FCA5A5;
+    }
+    .saved-metrics {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: #64748B;
+      margin-bottom: 8px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #64748B;
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      overflow-x: auto;
+      display: block;
+    }
+    .compare-table th, .compare-table td {
+      border: 1px solid #E2E8F0;
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .compare-table th {
+      background: #F8FAFC;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .compare-table td:first-child {
+      background: #F8FAFC;
+      font-weight: 500;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      min-width: 200px;
+    }
+    .compare-table th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      background: #F8FAFC;
+    }
+    .comp-desc-small {
+      font-size: 11px;
+      color: #64748B;
+      font-weight: 400;
+      margin-top: 4px;
+    }
+    .level-cell {
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .level-cell-E { background: #EEEDFE; color: #3C3489; }
+    .level-cell-A { background: #E1F5EE; color: #085041; }
+    .level-cell-C { background: #E6F1FB; color: #0C447C; }
+    .level-cell-D { background: #FAEEDA; color: #633806; }
+    .career-path-container {
+      background: white;
+      padding: 20px;
+      overflow-x: auto;
+      min-height: 500px;
+    }
+    .career-tracks {
+      display: flex;
+      gap: 40px;
+      min-width: max-content;
+    }
+    .career-track {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 200px;
+    }
+    .track-header {
+      background: #3B82F6;
+      color: white;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .career-position {
+      border: 2px dashed #CBD5E1;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 80px;
+      background: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+    .career-position.has-job {
+      border: 2px solid #3B82F6;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .career-job-card {
+      background: #EFF6FF;
+      border: 1px solid #3B82F6;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: move;
+    }
+    .career-job-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #1E40AF;
+      margin-bottom: 4px;
+    }
+    .career-job-level {
+      font-size: 11px;
+      color: #64748B;
+    }
+    .position-controls {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .position-btn {
+      padding: 3px 8px;
+      font-size: 10px;
+      background: white;
+      border: 1px solid #CBD5E1;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .position-btn:hover {
+      background: #F1F5F9;
+    }
+    .add-position-btn {
+      border: 2px dashed #94A3B8;
+      background: transparent;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748B;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    .add-position-btn:hover {
+      border-color: #3B82F6;
+      color: #3B82F6;
+    }
+    .career-controls {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .unassigned-jobs {
+      background: #FEF3C7;
+      border: 1px solid #F59E0B;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .unassigned-header {
+      font-weight: 600;
+      font-size: 13px;
+      color: #92400E;
+      margin-bottom: 8px;
+    }
+    .unassigned-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .unassigned-job {
+      background: white;
+      border: 1px solid #F59E0B;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #92400E;
+      cursor: pointer;
+    }
+    .unassigned-job:hover {
+      background: #FEF3C7;
+    }
+    .gap-issue {
+      background: white;
+      border-left: 4px solid #DC2626;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .gap-issue.warning {
+      border-left-color: #F59E0B;
+    }
+    .gap-issue.info {
+      border-left-color: #3B82F6;
+    }
+    .gap-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .gap-icon {
+      font-size: 24px;
+    }
+    .gap-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: #0F172A;
+    }
+    .gap-description {
+      font-size: 13px;
+      color: #64748B;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .gap-jobs {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      padding: 12px;
+      background: #F8FAFC;
+      border-radius: 6px;
+    }
+    .gap-job {
+      flex: 1;
+    }
+    .gap-job-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+    .gap-job-level {
+      font-size: 11px;
+      color: #64748B;
+      margin-bottom: 8px;
+    }
+    .gap-comp-list {
+      font-size: 12px;
+      color: #475569;
+    }
+    .gap-comp-issue {
+      padding: 4px 8px;
+      background: #FEE2E2;
+      color: #991B1B;
+      border-radius: 4px;
+      font-size: 11px;
+      display: inline-block;
+      margin: 2px;
+    }
+    .gap-no-issues {
+      text-align: center;
+      padding: 60px 20px;
+      color: #10B981;
+    }
+    .gap-no-issues-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .gap-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .gap-stat {
+      background: #F8FAFC;
+      padding: 16px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .gap-stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #DC2626;
+    }
+    .gap-stat-label {
+      font-size: 12px;
+      color: #64748B;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="banner">
+      <div class="banner-title">Career Intelligence Platform</div>
+      <div class="banner-subtitle">JD Analyzer - Local Mode (No API Required)</div>
+      <div class="status">🔵 Local Mode - Works Offline</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('analyzer')">🔍 Analyze JD</button>
+      <button class="tab-btn" onclick="showTab('saved')">📋 Saved Job Reqs (<span id="savedCount">0</span>)</button>
+      <button class="tab-btn" onclick="showTab('compare')">📊 Compare Jobs</button>
+      <button class="tab-btn" onclick="showTab('career')">🗺️ Career Path</button>
+      <button class="tab-btn" onclick="showTab('gap')">⚠️ Gap Analysis</button>
+    </div>
+
+    <div id="analyzerTab" class="tab-content active">
+    <div class="card">
+      <h2 style="margin-bottom: 12px; font-size: 18px;">JD Analyzer</h2>
+      <p style="color: #64748B; margin-bottom: 16px; font-size: 13px;">
+        Paste a job description or upload a text file. Local keyword analysis extracts competencies using the D/C/A/E framework. For Word documents, click "Have a Word Doc?" for instructions.
+      </p>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" onclick="loadSample()">⚡ Load Sample JD</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📄 Upload TXT/MD</button>
+        <button class="btn btn-secondary" onclick="showWordInstructions()">📝 Have a Word Doc?</button>
+      </div>
+      <input type="file" id="fileInput" accept=".txt,.md" style="display: none;" onchange="handleFile(event)">
+
+      <textarea id="jdInput" placeholder="Paste job description here..."></textarea>
+
+      <button class="btn" onclick="analyze()">🔍 Analyze Job Description</button>
+
+      <div id="loading" class="hidden" style="margin-top: 12px; color: #64748B;">
+        Analyzing...
+      </div>
+    </div>
+
+    <div id="results" class="hidden">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h3 id="roleTitle" style="font-size: 18px; margin-bottom: 4px;"></h3>
+            <div id="roleLevel" style="font-size: 13px; color: #64748B;"></div>
+          </div>
+          <button class="btn btn-secondary" onclick="reset()">← New Analysis</button>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Total</div>
+            <div class="metric-value" id="totalCount">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Expert</div>
+            <div class="metric-value" id="expertCount" style="color: #3C3489;">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Advanced</div>
+            <div class="metric-value" id="advancedCount" style="color: #085041;">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Competent</div>
+            <div class="metric-value" id="competentCount" style="color: #0C447C;">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Developing</div>
+            <div class="metric-value" id="developingCount" style="color: #633806;">0</div>
+          </div>
+        </div>
+
+        <div class="section-label">Competencies</div>
+        <div id="competencyList"></div>
+
+        <div style="margin-top: 16px; padding: 12px; background: #EFF6FF; border-radius: 6px; font-size: 12px; color: #1E40AF;">
+          <strong>Note:</strong> Local mode uses keyword pattern matching. Results are good for screening but less accurate than AI analysis.
+        </div>
+
+        <div style="margin-top: 12px; text-align: center;">
+          <button class="btn" onclick="saveCurrentAnalysis()">💾 Save This Analysis</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div id="savedTab" class="tab-content">
+      <div class="card">
+        <h2 style="font-size: 18px; margin-bottom: 16px;">Saved Job Requirements</h2>
+        <div id="savedList" class="saved-list"></div>
+      </div>
+    </div>
+
+    <div id="compareTab" class="tab-content">
+      <div class="card">
+        <h2 style="font-size: 18px; margin-bottom: 16px;">Job Comparison Matrix</h2>
+        <div id="compareTable" style="overflow-x: auto;"></div>
+      </div>
+    </div>
+
+    <div id="careerTab" class="tab-content">
+      <div class="card">
+        <h2 style="font-size: 18px; margin-bottom: 16px;">Career Path Map</h2>
+
+        <div class="career-controls">
+          <button class="btn btn-secondary" onclick="addTrack()">➕ Add Track</button>
+          <button class="btn btn-secondary" onclick="saveCareerPath()">💾 Save Career Path</button>
+        </div>
+
+
+        <div class="career-path-container">
+          <div id="careerTracks" class="career-tracks"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="gapTab" class="tab-content">
+      <div class="card">
+        <h2 style="font-size: 18px; margin-bottom: 16px;">Gap Analysis</h2>
+        <p style="font-size: 13px; color: #64748B; margin-bottom: 20px;">
+          Identifies inconsistencies in competency levels between jobs, especially those in reporting relationships on the career path.
+        </p>
+
+        <div id="gapStats" class="gap-stats"></div>
+        <div id="gapIssues"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SAMPLE_JD = \`Principal Security Consultant
+
+12+ years of experience in Information Technology/Cyber Security and professional services.
+
+Responsibilities:
+- Lead technical development and mentoring of the Professional Services team
+- Create and manage a Training Academy Program
+- Deliver consultative advice based on Tenable products, industry standards, and best practices
+- Handle client escalations by coordinating between delivery team and other functions
+- Support pre- and post-sale business development activities
+- Conduct quality assurance reviews of client deliverables
+- Provide thought leadership on deployment methods and best practices
+- Monitor Customer Satisfaction Score performances
+- Expert level ability to diagnose, resolve and anticipate complex security issues
+- Proficiency in vulnerability scans, configuration audits, and security monitoring
+- Experience with Red Teaming, penetration assessments, Metasploit and Burp Suite
+- Deep understanding of auditing frameworks: ISO 17799, CIS, PCI, GLBA, HIPAA
+- Experience with cloud services, CSPM, CIEM, IaC, containerization
+- Programming and scripting with Python or Powershell for automation and API tasks
+- Current security certifications: CISSP, CISA, CISM, OSCP
+- Outstanding written and verbal communication skills
+- Must be comfortable leading 3+ hour calls\`;
+
+    const COMPETENCIES = [
+      { id: "tech_skills", name: "Technical Skills", desc: "Knowledge and ability to apply technical expertise" },
+      { id: "problem_solving", name: "Problem Solving", desc: "Identifies and resolves technical issues efficiently" },
+      { id: "risk_mgmt", name: "Risk Management", desc: "Identifies, assesses, and mitigates risks" },
+      { id: "innovation", name: "Innovation", desc: "Generates new ideas and creative solutions" },
+      { id: "managing_outcomes", name: "Managing Outcomes", desc: "Ensures projects are completed successfully" },
+      { id: "client_onboarding", name: "Client Onboarding", desc: "Implements and configures systems for clients" },
+      { id: "time_mgmt", name: "Time Management", desc: "Manages time and priorities effectively" },
+      { id: "versatility", name: "Versatility", desc: "Adapts to new environments and challenges" },
+      { id: "customer_rel", name: "Customer Relationship", desc: "Builds strong client relationships" },
+      { id: "stakeholder_mgmt", name: "Stakeholder Management", desc: "Manages stakeholder relationships" },
+      { id: "influencing", name: "Influencing", desc: "Persuades and negotiates effectively" },
+      { id: "cultural_awareness", name: "Cultural Awareness", desc: "Works effectively across cultures" },
+      { id: "mentoring", name: "Mentoring", desc: "Guides and develops colleagues" },
+      { id: "knowledge_sharing", name: "Knowledge Sharing", desc: "Shares insights and best practices" },
+      { id: "leadership", name: "Leadership", desc: "Adapts leadership style to context" },
+      { id: "team_player", name: "Team Player", desc: "Collaborates effectively with peers" },
+      { id: "business_acumen", name: "Business Acumen", desc: "Understands business context" },
+      { id: "business_dev", name: "Business Development", desc: "Identifies growth opportunities" },
+      { id: "initiative", name: "Initiative", desc: "Proactively identifies opportunities" },
+      { id: "communication", name: "Communication", desc: "Communicates clearly and effectively" },
+      { id: "presenting", name: "Presenting", desc: "Delivers engaging presentations" },
+    ];
+
+    const KEYWORDS = {
+      tech_skills: { E: ["expert", "lead", "architect"], A: ["advanced", "deep understanding", "proficiency"], C: ["implements", "configures", "maintains"], D: ["familiar", "basic"] },
+      problem_solving: { E: ["expert level ability", "anticipate"], A: ["complex", "advanced ability"], C: ["troubleshoot", "diagnose"], D: ["aware"] },
+      managing_outcomes: { E: ["strategic", "enterprise"], A: ["lead", "oversee"], C: ["manage", "ensure", "deliver"], D: ["assist"] },
+      customer_rel: { E: ["client escalations", "handle client escalations"], A: ["deep understanding", "trusted"], C: ["build relationships"], D: ["support"] },
+      stakeholder_mgmt: { E: ["strategic", "executive"], A: ["manage relationships", "align"], C: ["coordinate"], D: ["communicate"] },
+      mentoring: { E: ["training academy", "program"], A: ["mentor", "train", "coach"], C: ["guide", "support"], D: ["share"] },
+      knowledge_sharing: { E: ["academy", "methodology"], A: ["thought leadership", "best practices"], C: ["share", "document"], D: ["participate"] },
+      leadership: { E: ["strategic", "transform"], A: ["lead", "guide"], C: ["support"], D: ["follow"] },
+      business_acumen: { E: ["strategic", "revenue targets"], A: ["revenue", "business development"], C: ["understand", "align"], D: ["aware"] },
+      business_dev: { E: ["strategy", "territory"], A: ["pre-sale", "post-sale"], C: ["support", "identify"], D: ["aware"] },
+      communication: { E: ["3+ hour calls", "leading.*calls"], A: ["outstanding", "complex ideas"], C: ["clear", "written and verbal"], D: ["basic"] },
+      presenting: { E: ["executive", "strategic"], A: ["confident", "engaging"], C: ["deliver presentations"], D: ["present"] },
+      initiative: { E: ["innovate", "transform"], A: ["anticipate", "improve"], C: ["proactive", "identify"], D: ["willing"] },
+    };
+
+    function loadSample() {
+      document.getElementById('jdInput').value = SAMPLE_JD;
+    }
+
+    function showWordInstructions() {
+      const instructions = `📝 How to Use Word Documents:
+
+Option 1 - Copy/Paste (Easiest):
+1. Open your Word document
+2. Select all text (Ctrl+A)
+3. Copy (Ctrl+C)
+4. Paste into the text box below (Ctrl+V)
+5. Click "Analyze Job Description"
+
+Option 2 - Save as Text File:
+1. Open your Word document
+2. File → Save As
+3. Choose "Plain Text (*.txt)" format
+4. Save the file
+5. Click "📄 Upload TXT/MD" and select the .txt file
+
+Option 3 - Use Online Converter:
+1. Go to https://www.zamzar.com/convert/docx-to-txt/
+2. Upload your Word document
+3. Download the .txt file
+4. Upload the .txt file here
+
+Why? Your network blocks the libraries needed to read Word files directly.`;
+
+      alert(instructions);
+    }
+
+    function handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('jdInput').value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    function analyze() {
+      const text = document.getElementById('jdInput').value;
+
+      if (!text.trim()) {
+        return;
+      }
+
+      document.getElementById('loading').classList.remove('hidden');
+
+      setTimeout(() => {
+        const results = analyzeJD(text);
+        displayResults(results);
+        document.getElementById('loading').classList.add('hidden');
+      }, 500);
+    }
+
+    function analyzeJD(text) {
+      const lower = text.toLowerCase();
+      const results = [];
+      const counts = { D: 0, C: 0, A: 0, E: 0 };
+
+      COMPETENCIES.forEach(comp => {
+        let level = "D";
+        const kw = KEYWORDS[comp.id] || {};
+
+        if (kw.E && kw.E.some(k => new RegExp(k, 'i').test(text))) level = "E";
+        else if (kw.A && kw.A.some(k => new RegExp(k, 'i').test(text))) level = "A";
+        else if (kw.C && kw.C.some(k => new RegExp(k, 'i').test(text))) level = "C";
+
+        counts[level]++;
+        results.push({ ...comp, level });
+      });
+
+      const yearsMatch = text.match(/(\\d+)\\+?\\s*years/i);
+      const years = yearsMatch ? parseInt(yearsMatch[1]) : null;
+      const titleMatch = text.match(/^(.+?)[\\n\\r]/);
+      const title = titleMatch ? titleMatch[1].trim() : "Consultant";
+
+      return {
+        title,
+        level: years >= 12 ? "Senior/Principal" : years >= 8 ? "Senior" : years >= 5 ? "Mid-Level" : "Entry/Mid",
+        competencies: results,
+        counts
+      };
+    }
+
+    function displayResults(results) {
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('roleTitle').textContent = results.title;
+      document.getElementById('roleLevel').textContent = results.level;
+
+      document.getElementById('totalCount').textContent = results.competencies.length;
+      document.getElementById('expertCount').textContent = results.counts.E;
+      document.getElementById('advancedCount').textContent = results.counts.A;
+      document.getElementById('competentCount').textContent = results.counts.C;
+      document.getElementById('developingCount').textContent = results.counts.D;
+
+      const list = document.getElementById('competencyList');
+      list.innerHTML = '';
+
+      results.competencies.forEach(comp => {
+        const div = document.createElement('div');
+        div.className = 'comp-row';
+        div.innerHTML = \`
+          <div class="comp-name">\${comp.name}</div>
+          <div class="comp-desc">\${comp.desc}</div>
+          <span class="level-badge level-\${comp.level}">\${comp.level} - \${getLevelLabel(comp.level)}</span>
+        \`;
+        list.appendChild(div);
+      });
+
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function getLevelLabel(level) {
+      const labels = { D: "Developing", C: "Competent", A: "Advanced", E: "Expert" };
+      return labels[level];
+    }
+
+    function reset() {
+      document.getElementById('results').classList.add('hidden');
+      document.getElementById('jdInput').value = '';
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Tab Management
+    let currentAnalysis = null;
+
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tabName === 'analyzer') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('analyzerTab').classList.add('active');
+      } else if (tabName === 'saved') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('savedTab').classList.add('active');
+        loadSavedList();
+      } else if (tabName === 'compare') {
+        document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+        document.getElementById('compareTab').classList.add('active');
+        loadCompareTable();
+      } else if (tabName === 'career') {
+        document.querySelector('.tab-btn:nth-child(4)').classList.add('active');
+        document.getElementById('careerTab').classList.add('active');
+        loadCareerPath();
+      } else if (tabName === 'gap') {
+        document.querySelector('.tab-btn:nth-child(5)').classList.add('active');
+        document.getElementById('gapTab').classList.add('active');
+        loadGapAnalysis();
+      }
+    }
+
+    // Storage Management
+    function getSavedJDs() {
+      const saved = localStorage.getItem('savedJDs');
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    function saveSavedJDs(jds) {
+      localStorage.setItem('savedJDs', JSON.stringify(jds));
+      updateSavedCount();
+    }
+
+    function updateSavedCount() {
+      const count = getSavedJDs().length;
+      document.getElementById('savedCount').textContent = count;
+    }
+
+    function saveCurrentAnalysis() {
+      if (!currentAnalysis) {
+        return;
+      }
+
+      const reqName = prompt('Enter a name for this job requirement:', currentAnalysis.title);
+      if (!reqName || reqName.trim() === '') {
+        return;
+      }
+
+      const reqLevel = prompt('Enter the level for this job (e.g., P5, P4, Senior, etc.):', 'P5');
+      if (!reqLevel || reqLevel.trim() === '') {
+        return;
+      }
+
+      const jds = getSavedJDs();
+      const newJD = {
+        id: Date.now(),
+        title: reqName.trim(),
+        level: reqLevel.trim(),
+        competencies: currentAnalysis.competencies,
+        counts: currentAnalysis.counts,
+        savedDate: new Date().toISOString(),
+        originalText: document.getElementById('jdInput').value
+      };
+
+      jds.unshift(newJD);
+      saveSavedJDs(jds);
+
+      showTab('saved');
+    }
+
+    function loadSavedList() {
+      const jds = getSavedJDs();
+      const list = document.getElementById('savedList');
+
+      if (jds.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div style="font-size: 16px; margin-bottom: 8px;">No saved job requirements yet</div>
+            <div style="font-size: 13px;">Analyze a JD and click "Save This Analysis" to track it here</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = jds.map(jd => {
+        const date = new Date(jd.savedDate).toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        return `
+          <div class="saved-item">
+            <div class="saved-item-header">
+              <div>
+                <div class="saved-item-title">${jd.title}</div>
+                <div class="saved-item-date">Saved ${date}</div>
+              </div>
+              <div class="saved-item-actions">
+                <button class="btn-small" onclick="viewJD(${jd.id})">👁️ View</button>
+                <button class="btn-small btn-danger" onclick="deleteJD(${jd.id})">Delete</button>
+              </div>
+            </div>
+            <div class="saved-metrics">
+              <span><strong>Level:</strong> ${jd.level}</span>
+              <span><strong>Expert:</strong> ${jd.counts.E}</span>
+              <span><strong>Advanced:</strong> ${jd.counts.A}</span>
+              <span><strong>Competent:</strong> ${jd.counts.C}</span>
+              <span><strong>Developing:</strong> ${jd.counts.D}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function viewJD(id) {
+      const jds = getSavedJDs();
+      const jd = jds.find(j => j.id === id);
+      if (!jd) return;
+
+      document.getElementById('jdInput').value = jd.originalText;
+      currentAnalysis = {
+        title: jd.title,
+        level: jd.level,
+        competencies: jd.competencies,
+        counts: jd.counts
+      };
+      displayResults(currentAnalysis);
+      showTab('analyzer');
+    }
+
+    function deleteJD(id) {
+      if (!confirm('Delete this job requirement?')) return;
+
+      const jds = getSavedJDs();
+      const filtered = jds.filter(j => j.id !== id);
+      saveSavedJDs(filtered);
+      loadSavedList();
+    }
+
+    function clearAllSaved() {
+      if (!confirm('Delete all saved job requirements? This cannot be undone.')) return;
+
+      localStorage.removeItem('savedJDs');
+      updateSavedCount();
+      loadSavedList();
+    }
+
+    // Update analyze function to store current analysis
+    const originalAnalyze = analyze;
+    analyze = function() {
+      originalAnalyze();
+    };
+
+    // Update displayResults to store current analysis
+    const originalDisplayResults = displayResults;
+    displayResults = function(results) {
+      currentAnalysis = results;
+      originalDisplayResults(results);
+    };
+
+    // Comparison Table
+    function loadCompareTable() {
+      const jds = getSavedJDs();
+      const table = document.getElementById('compareTable');
+
+      if (jds.length === 0) {
+        table.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <div style="font-size: 16px; margin-bottom: 8px;">No jobs to compare</div>
+            <div style="font-size: 13px;">Save at least one job analysis to see the comparison matrix</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<table class="compare-table"><thead><tr>';
+      html += '<th>Competency</th>';
+
+      jds.forEach(jd => {
+        html += `<th>${jd.title}</th>`;
+      });
+
+      html += '</tr></thead><tbody>';
+
+      // Job Level Row
+      html += '<tr style="background: #F8FAFC; font-weight: 500;">';
+      html += '<td><strong>Level</strong></td>';
+      jds.forEach(jd => {
+        html += `<td style="text-align: center; font-weight: 500; color: #0F172A;">${jd.level}</td>`;
+      });
+      html += '</tr>';
+
+      COMPETENCIES.forEach(comp => {
+        html += '<tr>';
+        html += `<td><strong>${comp.name}</strong><div class="comp-desc-small">${comp.desc}</div></td>`;
+
+        jds.forEach(jd => {
+          const compData = jd.competencies.find(c => c.id === comp.id);
+          const level = compData ? compData.level : 'D';
+          const levelName = getLevelLabel(level);
+          html += `<td class="level-cell level-cell-${level}">${level}<br><span style="font-size: 10px;">${levelName}</span></td>`;
+        });
+
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      table.innerHTML = html;
+    }
+
+    // Career Path Management
+    let careerPathData = {
+      tracks: []
+    };
+
+    function getCareerPath() {
+      const saved = localStorage.getItem('careerPath');
+      return saved ? JSON.parse(saved) : { tracks: [] };
+    }
+
+    function saveCareerPathData() {
+      localStorage.setItem('careerPath', JSON.stringify(careerPathData));
+    }
+
+    function loadCareerPath() {
+      careerPathData = getCareerPath();
+
+      // Initialize with default tracks if empty
+      if (careerPathData.tracks.length === 0) {
+        careerPathData.tracks = [
+          { id: Date.now(), name: 'Security Consultancy', positions: [] },
+          { id: Date.now() + 1, name: 'Security Architecture', positions: [] },
+          { id: Date.now() + 2, name: 'Project Management', positions: [] }
+        ];
+      }
+
+      renderCareerPath();
+    }
+
+    function renderCareerPath() {
+      const container = document.getElementById('careerTracks');
+      container.innerHTML = '';
+
+      careerPathData.tracks.forEach((track, trackIndex) => {
+        const trackDiv = document.createElement('div');
+        trackDiv.className = 'career-track';
+
+        trackDiv.innerHTML = `
+          <div class="track-header">
+            ${track.name}
+            <button class="position-btn" onclick="editTrackName(${trackIndex})" style="margin-left: 8px;">✏️</button>
+            <button class="position-btn" onclick="removeTrack(${trackIndex})">🗑️</button>
+          </div>
+        `;
+
+        track.positions.forEach((position, posIndex) => {
+          const posDiv = document.createElement('div');
+          const job = getSavedJDs().find(j => j.id === position.jobId);
+
+          if (job) {
+            posDiv.className = 'career-position has-job';
+            posDiv.innerHTML = `
+              <div class="career-job-card">
+                <div class="career-job-title">${job.title}</div>
+                <div class="career-job-level">${job.level}</div>
+                <div class="position-controls">
+                  <button class="position-btn" onclick="removePosition(${trackIndex}, ${posIndex})">🗑️ Remove</button>
+                  <button class="position-btn" onclick="movePositionUp(${trackIndex}, ${posIndex})">↑</button>
+                  <button class="position-btn" onclick="movePositionDown(${trackIndex}, ${posIndex})">↓</button>
+                </div>
+              </div>
+            `;
+          } else {
+            posDiv.className = 'career-position';
+            posDiv.innerHTML = `
+              <div style="text-align: center; color: #94A3B8; font-size: 12px;">Job Not Found</div>
+              <div class="position-controls">
+                <button class="position-btn" onclick="removePosition(${trackIndex}, ${posIndex})">🗑️ Remove</button>
+              </div>
+            `;
+          }
+
+          trackDiv.appendChild(posDiv);
+        });
+
+        const addPosBtn = document.createElement('div');
+        addPosBtn.className = 'add-position-btn';
+        addPosBtn.textContent = '+ Add Position';
+        addPosBtn.onclick = () => addPosition(trackIndex);
+        trackDiv.appendChild(addPosBtn);
+
+        container.appendChild(trackDiv);
+      });
+    }
+
+    function addTrack() {
+      const name = prompt('Enter track name:', 'New Track');
+      if (!name) return;
+
+      careerPathData.tracks.push({
+        id: Date.now(),
+        name: name.trim(),
+        positions: []
+      });
+
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function editTrackName(trackIndex) {
+      const track = careerPathData.tracks[trackIndex];
+      const name = prompt('Enter track name:', track.name);
+      if (!name) return;
+
+      track.name = name.trim();
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function removeTrack(trackIndex) {
+      if (!confirm('Remove this track and all its positions?')) return;
+
+      careerPathData.tracks.splice(trackIndex, 1);
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function addPosition(trackIndex) {
+      const jds = getSavedJDs();
+
+      if (jds.length === 0) {
+        alert('No saved job requirements. Please analyze and save some jobs first.');
+        return;
+      }
+
+      let message = 'Select a job requirement to add:\n\n';
+      jds.forEach((job, index) => {
+        message += `${index + 1}. ${job.title} (${job.level})\n`;
+      });
+      message += '\nEnter the number (or 0 to cancel):';
+
+      const selection = prompt(message, '1');
+      if (!selection || selection === '0') return;
+
+      const jobIndex = parseInt(selection) - 1;
+      if (jobIndex < 0 || jobIndex >= jds.length) {
+        alert('Invalid selection');
+        return;
+      }
+
+      const selectedJob = jds[jobIndex];
+
+      careerPathData.tracks[trackIndex].positions.push({
+        id: Date.now(),
+        jobId: selectedJob.id
+      });
+
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function removePosition(trackIndex, posIndex) {
+      careerPathData.tracks[trackIndex].positions.splice(posIndex, 1);
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function movePositionUp(trackIndex, posIndex) {
+      if (posIndex === 0) return;
+      const positions = careerPathData.tracks[trackIndex].positions;
+      [positions[posIndex], positions[posIndex - 1]] = [positions[posIndex - 1], positions[posIndex]];
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function movePositionDown(trackIndex, posIndex) {
+      const positions = careerPathData.tracks[trackIndex].positions;
+      if (posIndex === positions.length - 1) return;
+      [positions[posIndex], positions[posIndex + 1]] = [positions[posIndex + 1], positions[posIndex]];
+      saveCareerPathData();
+      renderCareerPath();
+    }
+
+    function saveCareerPath() {
+      saveCareerPathData();
+      alert('Career path saved!');
+    }
+
+    // Gap Analysis
+    function loadGapAnalysis() {
+      const issues = [];
+      const jds = getSavedJDs();
+      const careerPath = getCareerPath();
+
+      if (jds.length === 0) {
+        displayGapResults([], 0);
+        return;
+      }
+
+      // Analyze reporting relationships in career path
+      careerPath.tracks.forEach(track => {
+        for (let i = 0; i < track.positions.length - 1; i++) {
+          const lowerPos = track.positions[i];
+          const higherPos = track.positions[i + 1];
+
+          if (lowerPos.jobId && higherPos.jobId) {
+            const lowerJob = jds.find(j => j.id === lowerPos.jobId);
+            const higherJob = jds.find(j => j.id === higherPos.jobId);
+
+            if (lowerJob && higherJob) {
+              const compIssues = compareJobs(lowerJob, higherJob);
+              if (compIssues.length > 0) {
+                issues.push({
+                  type: 'reporting',
+                  severity: 'error',
+                  lowerJob,
+                  higherJob,
+                  track: track.name,
+                  competencies: compIssues
+                });
+              }
+            }
+          }
+        }
+      });
+
+      // Find jobs with identical competency profiles
+      for (let i = 0; i < jds.length; i++) {
+        for (let j = i + 1; j < jds.length; j++) {
+          const job1 = jds[i];
+          const job2 = jds[j];
+          const identical = areCompetenciesIdentical(job1, job2);
+
+          if (identical) {
+            issues.push({
+              type: 'identical',
+              severity: 'warning',
+              job1,
+              job2
+            });
+          }
+        }
+      }
+
+      displayGapResults(issues, jds.length);
+    }
+
+    function compareJobs(lowerJob, higherJob) {
+      const issues = [];
+      const levelValue = { D: 1, C: 2, A: 3, E: 4 };
+
+      COMPETENCIES.forEach(comp => {
+        const lowerComp = lowerJob.competencies.find(c => c.id === comp.id);
+        const higherComp = higherJob.competencies.find(c => c.id === comp.id);
+
+        const lowerLevel = lowerComp ? lowerComp.level : 'D';
+        const higherLevel = higherComp ? higherComp.level : 'D';
+
+        if (levelValue[lowerLevel] >= levelValue[higherLevel]) {
+          issues.push({
+            name: comp.name,
+            lowerLevel,
+            higherLevel,
+            same: lowerLevel === higherLevel
+          });
+        }
+      });
+
+      return issues;
+    }
+
+    function areCompetenciesIdentical(job1, job2) {
+      let matchCount = 0;
+
+      COMPETENCIES.forEach(comp => {
+        const comp1 = job1.competencies.find(c => c.id === comp.id);
+        const comp2 = job2.competencies.find(c => c.id === comp.id);
+
+        const level1 = comp1 ? comp1.level : 'D';
+        const level2 = comp2 ? comp2.level : 'D';
+
+        if (level1 === level2) matchCount++;
+      });
+
+      return matchCount === COMPETENCIES.length;
+    }
+
+    function displayGapResults(issues, totalJobs) {
+      const statsContainer = document.getElementById('gapStats');
+      const issuesContainer = document.getElementById('gapIssues');
+
+      const errorCount = issues.filter(i => i.severity === 'error').length;
+      const warningCount = issues.filter(i => i.severity === 'warning').length;
+
+      statsContainer.innerHTML = `
+        <div class="gap-stat">
+          <div class="gap-stat-value">${issues.length}</div>
+          <div class="gap-stat-label">Total Issues</div>
+        </div>
+        <div class="gap-stat">
+          <div class="gap-stat-value" style="color: #DC2626;">${errorCount}</div>
+          <div class="gap-stat-label">Reporting Issues</div>
+        </div>
+        <div class="gap-stat">
+          <div class="gap-stat-value" style="color: #F59E0B;">${warningCount}</div>
+          <div class="gap-stat-label">Identical Profiles</div>
+        </div>
+        <div class="gap-stat">
+          <div class="gap-stat-value" style="color: #64748B;">${totalJobs}</div>
+          <div class="gap-stat-label">Jobs Analyzed</div>
+        </div>
+      `;
+
+      if (issues.length === 0) {
+        issuesContainer.innerHTML = `
+          <div class="gap-no-issues">
+            <div class="gap-no-issues-icon">✅</div>
+            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Issues Found</div>
+            <div style="font-size: 14px;">All job requirements have appropriate competency level differences</div>
+          </div>
+        `;
+        return;
+      }
+
+      issuesContainer.innerHTML = issues.map(issue => {
+        if (issue.type === 'reporting') {
+          const compList = issue.competencies.map(c =>
+            `<span class="gap-comp-issue">${c.name}: ${c.lowerLevel} ${c.same ? '=' : '>'} ${c.higherLevel}</span>`
+          ).join(' ');
+
+          return `
+            <div class="gap-issue">
+              <div class="gap-header">
+                <div class="gap-icon">⚠️</div>
+                <div>
+                  <div class="gap-title">Reporting Relationship Issue in ${issue.track}</div>
+                </div>
+              </div>
+              <div class="gap-description">
+                A subordinate position has equal or higher competency levels than the position they report to.
+                This may indicate misaligned job requirements or incorrect career path structure.
+              </div>
+              <div class="gap-jobs">
+                <div class="gap-job">
+                  <div class="gap-job-title">${issue.lowerJob.title}</div>
+                  <div class="gap-job-level">${issue.lowerJob.level} (Reports To →)</div>
+                </div>
+                <div class="gap-job">
+                  <div class="gap-job-title">${issue.higherJob.title}</div>
+                  <div class="gap-job-level">${issue.higherJob.level} (Manager)</div>
+                </div>
+              </div>
+              <div style="margin-top: 12px;">
+                <strong style="font-size: 12px; color: #DC2626;">Problem Competencies:</strong><br>
+                ${compList}
+              </div>
+            </div>
+          `;
+        } else if (issue.type === 'identical') {
+          return `
+            <div class="gap-issue warning">
+              <div class="gap-header">
+                <div class="gap-icon">⚡</div>
+                <div>
+                  <div class="gap-title">Identical Competency Profiles</div>
+                </div>
+              </div>
+              <div class="gap-description">
+                These two jobs have identical competency levels across all ${COMPETENCIES.length} competencies.
+                Consider if they truly represent different roles or if one should have higher requirements.
+              </div>
+              <div class="gap-jobs">
+                <div class="gap-job">
+                  <div class="gap-job-title">${issue.job1.title}</div>
+                  <div class="gap-job-level">${issue.job1.level}</div>
+                </div>
+                <div class="gap-job">
+                  <div class="gap-job-title">${issue.job2.title}</div>
+                  <div class="gap-job-level">${issue.job2.level}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      showTab('analyzer');
+      updateSavedCount();
+    });
+
+  </script>
+</body>
+</html>
