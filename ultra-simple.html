@@ -3401,7 +3401,11 @@ function handleColumnDragOver(e) {
 }
 
 function handleColumnDragEnter(e) {
-  if (e.currentTarget.cellIndex === 0) return; // Skip first column (competency names)
+  const target = e.currentTarget;
+  // Skip first column (competency names) - check class or data attribute
+  if (target.cellIndex === 0 || (!target.classList.contains('job-column-header') && !target.classList.contains('job-column-cell'))) {
+    return;
+  }
   e.currentTarget.classList.add('drag-over-column');
 }
 
@@ -3417,16 +3421,17 @@ function handleColumnDrop(e, dropIndex) {
   e.currentTarget.classList.remove('drag-over-column');
 
   if (draggedColumnIndex !== null && draggedColumnIndex !== dropIndex && dropIndex !== -1) {
-    // Get job order
+    // Get current ordered jobs
     const allJDs = getSavedJDs();
     const deptJDs = allJDs.filter(j => j.departmentId === currentDepartmentId);
+    const orderedJDs = getOrderedJobs(deptJDs);
 
-    // Reorder jobs
-    const [removed] = deptJDs.splice(draggedColumnIndex, 1);
-    deptJDs.splice(dropIndex, 0, removed);
+    // Reorder jobs array
+    const [removed] = orderedJDs.splice(draggedColumnIndex, 1);
+    orderedJDs.splice(dropIndex, 0, removed);
 
     // Save new order
-    saveJobOrder(deptJDs.map(j => j.id));
+    saveJobOrder(orderedJDs.map(j => j.id));
     loadCompareTable();
   }
 
@@ -3499,9 +3504,9 @@ function loadCompareTable() {
   let html = '<table class="compare-table"><thead><tr>';
   html += '<th><span title="Drag rows to reorder">Competency</span> <span style="font-size: 11px; color: var(--gray-400);">↕️</span></th>';
   jds.forEach((jd, index) => {
-    html += '<th class="job-column-header" draggable="true" data-col-index="' + index + '" title="Drag to reorder columns">';
-    html += '<div style="cursor: move;"><span style="color: var(--gray-400); font-size: 14px; margin-right: 4px;">⋮⋮</span>';
-    html += jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span></div></th>';
+    html += '<th class="job-column-header" draggable="true" data-col-index="' + index + '" title="Drag to reorder columns" style="cursor: move;">';
+    html += '<span style="color: var(--gray-400); font-size: 14px; margin-right: 4px;">⋮⋮</span>';
+    html += jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span></th>';
   });
   html += '</tr></thead><tbody id="compareTableBody">';
 
