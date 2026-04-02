@@ -1900,7 +1900,12 @@ function showAddCompetencyModal() {
   html += '<input type="text" id="newCompKeywords" class="modal-input" placeholder="e.g., architecture, design, security">';
   html += '</div>';
 
-  showModal('Add Custom Competency', html, addCustomCompetency);
+  const buttons = [
+    { text: 'Cancel', onClick: 'closeModal()', primary: false },
+    { text: 'Add Competency', onClick: 'addCustomCompetency()', primary: true }
+  ];
+
+  openModal('Add Custom Competency', html, buttons);
 }
 
 function addCustomCompetency() {
