@@ -1,151 +1,145 @@
-# Career Intelligence Platform
+# Career Intelligence Platform 🎯
 
-A sophisticated AI-powered platform for analyzing job descriptions, mapping career progression, and assessing promotion readiness using Claude API.
+A sophisticated AI-powered platform for analyzing job descriptions, mapping career progression, and assessing promotion readiness. Features drag-and-drop career path building, competency gap analysis, and intelligent recommendations.
 
-## Features
+![Tenable-styled](https://img.shields.io/badge/Style-Tenable-00d4e5)
+![Single File](https://img.shields.io/badge/Deployment-Single%20File-success)
+![No Build](https://img.shields.io/badge/Build-None%20Required-blue)
 
-### 1. 🔍 JD Analyzer
-- Upload job descriptions in multiple formats (PDF, DOCX, TXT, MD)
-- AI-powered extraction of competencies using D/C/A/E framework
-- Standards-author calibration for accurate proficiency levels
-- Manual adjustment capability with confidence scores
-- Save analyzed roles to your library
+## ✨ Features
 
-### 2. 🗺️ Career Map Generator
-- Generate complete career ladders for any role family
-- Both IC (Individual Contributor) and Management tracks
-- 4-6 levels per track with:
-  - Typical titles and experience ranges
-  - Compensation ranges
-  - Key competency requirements
-  - Promotion criteria
+### 🔍 **JD Analyzer**
+- Upload job descriptions (PDF, DOCX, TXT, MD)
+- AI-powered extraction using D/C/A/E framework
+- Interactive competency level editing
+- Auto-detect job levels
 
-### 3. 📊 Gap Analysis
-- Compare current vs target roles
-- Prioritized competency gaps (critical/high/medium)
-- Transferable strengths identification
-- Quarterly development action plans
-- Readiness scores and timelines
+### 📋 **Job Library**
+- Save analyzed jobs to department-specific libraries
+- Compare competency levels across roles
+- Interactive level adjustments (D · C · A · E)
+- Visual stats and metrics
 
-### 4. ✅ Readiness Assessment
-- Self-rate competencies against target role
-- Honest promotion readiness score (0-100)
-- Strengths and critical gaps breakdown
-- Personalized development plan
-- Executive coaching insights
+### 🗺️ **Career Path Builder**
+- **Drag & drop** positions to reorder or move between tracks
+- Multiple career tracks per department
+- Text labels for organizing levels
+- Visual hierarchy with reporting relationships
 
-## D/C/A/E Proficiency Framework
+### 🧠 **Career Path Intelligence**
+- Automatic gap detection in competency levels
+- AI-powered recommendations with one-click fixes
+- Identifies reporting relationship issues
+- Detects identical job profiles
+
+### 🏢 **Department Management**
+- Organize everything by department
+- Separate career paths per department
+- Department-specific job libraries
+- Easy switching between departments
+
+## 🚀 Quick Start
+
+**No installation required!** Just open `ultra-simple.html` in your browser.
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR-USERNAME/career-intelligence-platform.git
+
+# Open in browser
+# Just double-click ultra-simple.html
+```
+
+## 💡 D/C/A/E Framework
 
 - **D (Developing)**: Learning with guidance, needs help
 - **C (Competent)**: Performs independently, applies knowledge
 - **A (Advanced)**: Coaches others, recognized expert internally
-- **E (Expert)**: Creates standards, recognized authority (rare!)
+- **E (Expert)**: Creates standards, recognized authority
 
-## File Support
+## 🎨 Design
 
-- **PDF**: Full document analysis with Claude's PDF capabilities
-- **Word documents**: .doc, .docx (uses mammoth.js)
-- **Text files**: .txt, .md
+Modern UI inspired by Tenable's design system:
+- Dark navy backgrounds
+- Bright cyan (#00d4e5) accents with glow effects
+- Purple for advanced competencies
+- Smooth animations and interactions
 
-## Quick Start (Standalone)
-
-**No installation or API key required!**
-
-1. Open `index-standalone.html` in your browser
-2. Start analyzing immediately (local mode)
-3. **Optional**: Add Anthropic API key for AI features
-
-### Two Modes Available:
-
-**🟦 Local Mode** (default, no API key)
-- Works immediately, no setup
-- Keyword-based analysis
-- TXT, MD, DOCX support
-- Completely offline
-
-**🟩 AI Mode** (optional, API key required)
-- AI-powered analysis
-- PDF support
-- Career Maps
-- Gap Analysis
-- Readiness Assessment
-
-See [MODES.md](MODES.md) for detailed comparison.
-
-## Development Setup
-
-```bash
-npm install
-npm run dev
-```
-
-Open http://localhost:5173
-
-## API Configuration
-
-You need an Anthropic API key to use this platform:
-
-1. Get your API key from https://console.anthropic.com
-2. Enter it in the API key field at the top of the page
-3. It's stored locally in your browser (localStorage)
-
-## Usage Flow
-
-### Analyze a Job Description
-1. Go to "JD Analyzer" tab
-2. Upload a file or paste text
-3. Click "Run pipeline"
-4. Review extracted competencies
-5. Adjust levels if needed (click D/C/A/E buttons)
-6. Save to library
-
-### Generate Career Map
-1. Go to "Career Map" tab
-2. Enter a role family (e.g., "Security Analyst")
-3. Click "Generate career map"
-4. View IC and Management tracks
-5. Click on levels to see details
-
-### Compare Roles (Gap Analysis)
-1. Analyze and save 2+ roles to library
-2. Go to "Gap Analysis" tab
-3. Select current and target roles
-4. Click "Analyze gap"
-5. Review competency gaps and action plans
-
-### Assess Readiness
-1. Save target role to library
-2. Go to "Readiness" tab
-3. Select target role
-4. Self-rate your proficiency for each competency
-5. Click "Assess my readiness"
-6. Review your score and development plan
-
-## Technical Details
-
-- **Framework**: React 18
-- **AI Model**: Claude Sonnet 4 (claude-sonnet-4-20250514)
-- **File Parsing**: mammoth.js for DOCX, native FileReader for text
-- **Styling**: Inline styles with CSS variables
-- **State Management**: React hooks (useState)
-- **Storage**: localStorage for API key
-
-## Project Structure
+## 📁 File Structure
 
 ```
 career-intelligence-platform/
-├── index-standalone.html  # Single-file version (no build needed)
-├── index.html            # Vite entry point
-├── src/
-│   ├── main.jsx         # React root
-│   └── App.jsx          # Main application
-├── package.json
-└── README.md
+├── ultra-simple.html          # Main application (all-in-one)
+├── README.md                  # This file
+└── Other legacy files...
 ```
 
-## Notes
+## 🔧 Technology Stack
 
-- The platform uses Claude API directly (requires API key)
-- Standalone HTML version works immediately in any browser
-- All processing happens client-side (your data stays local)
-- Library is stored in component state (resets on refresh)
+- **Frontend**: Vanilla JavaScript + HTML5 + CSS3
+- **File Processing**: 
+  - PDF.js for PDF files
+  - Mammoth.js for DOCX files
+- **Storage**: localStorage (client-side only)
+- **No Backend Required**: Everything runs in the browser
+
+## 🎯 Use Cases
+
+1. **HR & Talent Teams**: Build standardized career ladders
+2. **Managers**: Assess team members for promotion readiness
+3. **Employees**: Understand career progression paths
+4. **Consultancies**: Design client career frameworks
+5. **Startups**: Establish initial role definitions
+
+## 🌟 Key Capabilities
+
+- ✅ **Drag & Drop**: Intuitive career path organization
+- ✅ **File Upload**: Support for PDF, DOCX, TXT, MD
+- ✅ **Real-time Editing**: Adjust competency levels on the fly
+- ✅ **Gap Analysis**: Automatic detection with AI recommendations
+- ✅ **Multi-Department**: Separate tracks for different teams
+- ✅ **Offline First**: Works completely in browser
+- ✅ **No Installation**: Single HTML file
+
+## 📊 Competency Matrix
+
+The platform uses a 10-competency framework:
+- Technical Skills
+- Problem Solving
+- Leadership
+- Communication
+- Customer Relationship
+- Business Development
+- Stakeholder Management
+- Mentoring
+- Knowledge Sharing
+- Risk Management
+
+## 🤝 Contributing
+
+This is a single-file application for maximum portability. To contribute:
+1. Fork the repository
+2. Make changes to `ultra-simple.html`
+3. Test in multiple browsers
+4. Submit a pull request
+
+## 📝 License
+
+MIT License - feel free to use and modify for your organization.
+
+## 🔗 Links
+
+- **Live Demo**: [GitHub Pages URL]
+- **Issues**: Report bugs or request features
+- **Discussions**: Share your career frameworks
+
+## 💬 Support
+
+Having issues? Check out:
+- Open an issue on GitHub
+- Check browser console for errors
+- Ensure localStorage is enabled
+
+---
+
+Built with ❤️ for HR professionals and career development
