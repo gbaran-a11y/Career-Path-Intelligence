@@ -2553,6 +2553,61 @@ function loadCareerCoach() {
   });
 }
 
+// Helper function to parse and compare job seniority levels
+function parseSeniorityLevel(levelString) {
+  if (!levelString) return 0;
+
+  const str = levelString.toUpperCase();
+
+  // Extract numeric levels (P3, P4, L3, L4, IC3, M4, etc.)
+  const numericMatch = str.match(/[PLMIC]?(\d+)/);
+  if (numericMatch) {
+    return parseInt(numericMatch[1]);
+  }
+
+  // Common seniority keywords with weights
+  const seniorityMap = {
+    'INTERN': 1,
+    'ASSOCIATE': 2,
+    'JUNIOR': 2,
+    'ENTRY': 2,
+    'MID': 3,
+    'INTERMEDIATE': 3,
+    'SENIOR': 4,
+    'SR': 4,
+    'STAFF': 5,
+    'LEAD': 5,
+    'PRINCIPAL': 6,
+    'ARCHITECT': 6,
+    'DISTINGUISHED': 7,
+    'FELLOW': 8,
+    'VP': 6,
+    'DIRECTOR': 6,
+    'SR DIRECTOR': 7,
+    'SENIOR DIRECTOR': 7,
+    'SVP': 8,
+    'EVP': 9,
+    'C-LEVEL': 10,
+    'CHIEF': 10
+  };
+
+  // Check for keywords
+  for (const [keyword, level] of Object.entries(seniorityMap)) {
+    if (str.includes(keyword)) {
+      return level;
+    }
+  }
+
+  // Default: assume mid-level if can't parse
+  return 3;
+}
+
+function isSameLevelOrHigher(targetLevel, currentLevel) {
+  const targetSeniority = parseSeniorityLevel(targetLevel);
+  const currentSeniority = parseSeniorityLevel(currentLevel);
+  return targetSeniority >= currentSeniority;
+}
+
 function updateCoachTargetRoles() {
   const currentRoleId = parseInt(document.getElementById('coachCurrentRole').value);
   const targetSelect = document.getElementById('coachTargetRole');
@@ -2564,17 +2619,40 @@ function updateCoachTargetRoles() {
     return;
   }
 
-  targetSelect.innerHTML = '<option value="">Select your target role...</option>';
-
   const allJDs = getSavedJDs();
   const deptJDs = currentDepartmentId ? allJDs.filter(j => j.departmentId === currentDepartmentId) : allJDs;
 
-  // Show all jobs except current as potential targets
-  deptJDs.forEach(jd => {
-    if (jd.id !== currentRoleId) {
-      targetSelect.innerHTML += '<option value="' + jd.id + '">' + jd.title + ' (' + jd.level + ')</option>';
-    }
+  // Find current role
+  const currentRole = allJDs.find(j => j.id === currentRoleId);
+  if (!currentRole) {
+    targetSelect.innerHTML = '<option value="">Error: Current role not found</option>';
+    return;
+  }
+
+  // Filter to only show same level or higher roles
+  const validTargets = deptJDs.filter(jd => {
+    if (jd.id === currentRoleId) return false; // Exclude current role
+    return isSameLevelOrHigher(jd.level, currentRole.level);
   });
+
+  const excludedCount = deptJDs.length - 1 - validTargets.length; // -1 for current role
+
+  targetSelect.innerHTML = '<option value="">Select your target role...</option>';
+
+  if (validTargets.length === 0) {
+    targetSelect.innerHTML += '<option value="" disabled>No higher or same-level roles available</option>';
+    targetSelect.innerHTML += '<option value="" disabled>Add more senior roles to the library</option>';
+  } else {
+    validTargets.forEach(jd => {
+      targetSelect.innerHTML += '<option value="' + jd.id + '">' + jd.title + ' (' + jd.level + ')</option>';
+    });
+
+    if (excludedCount > 0) {
+      targetSelect.innerHTML += '<option value="" disabled>───────────────────</option>';
+      targetSelect.innerHTML += '<option value="" disabled>✗ ' + excludedCount + ' lower-level role' + (excludedCount > 1 ? 's' : '') + ' hidden</option>';
+      targetSelect.innerHTML += '<option value="" disabled>Career Coach focuses on advancement ⬆️</option>';
+    }
+  }
 
   targetSelect.onchange = function() {
     startBtn.disabled = !targetSelect.value;
@@ -2609,6 +2687,14 @@ async function startCareerCoaching() {
   const allJDs = getSavedJDs();
   const currentRole = allJDs.find(j => j.id === currentRoleId);
   const targetRole = allJDs.find(j => j.id === targetRoleId);
+
+  // Validate that target is same level or higher (safety check)
+  if (!isSameLevelOrHigher(targetRole.level, currentRole.level)) {
+    showToast('Career Coach focuses on advancement. Please select a same-level or higher role as your target.', 'error');
+    document.getElementById('coachSetup').style.display = 'block';
+    document.getElementById('coachLoading').style.display = 'none';
+    return;
+  }
 
   // Simulate thinking steps
   const thinkingSteps = [
@@ -2689,17 +2775,42 @@ async function generateCareerGuidance(currentRole, targetRole, context) {
 }
 
 function generateSummary(currentRole, targetRole, gapCount) {
+  const currentSeniority = parseSeniorityLevel(currentRole.level);
+  const targetSeniority = parseSeniorityLevel(targetRole.level);
+  const isLateralMove = currentSeniority === targetSeniority;
+  const isPromotion = targetSeniority > currentSeniority;
+
+  let moveType = '';
+  if (isLateralMove) {
+    moveType = '🔄 Lateral Move';
+  } else if (isPromotion) {
+    const levelJump = targetSeniority - currentSeniority;
+    moveType = levelJump === 1 ? '⬆️ Promotion' : '⬆️⬆️ Major Promotion (' + levelJump + ' levels)';
+  }
+
+  let message = '';
+  if (isLateralMove) {
+    message = gapCount === 0
+      ? 'Perfect fit! This lateral move should be smooth. Focus on learning the new domain/context and building relationships with your new team.'
+      : gapCount <= 3
+      ? 'This lateral move requires developing ' + gapCount + ' new competencies. Plan for 2-3 months to get up to speed in the new area.'
+      : 'This lateral move involves ' + gapCount + ' significant competency differences. Expect 4-6 months to fully transition.';
+  } else {
+    message = gapCount === 0
+      ? 'Great news! You already meet all the competency requirements for this promotion. Focus on demonstrating impact and building relationships with decision-makers.'
+      : gapCount <= 3
+      ? 'You\'re quite close! You have ' + gapCount + ' key competency gaps to address. With focused effort, this promotion is very achievable.'
+      : gapCount <= 6
+      ? 'You\'re on a solid path. There are ' + gapCount + ' competencies to develop. This will require sustained effort over several months.'
+      : 'This is an ambitious promotion that will require significant development across ' + gapCount + ' competencies. Plan for 12-18 months of focused growth.';
+  }
+
   return {
     current: currentRole.title + ' (' + currentRole.level + ')',
     target: targetRole.title + ' (' + targetRole.level + ')',
+    moveType: moveType,
     gapCount: gapCount,
-    message: gapCount === 0
-      ? 'Great news! You already meet all the competency requirements for this role. Focus on demonstrating impact and building relationships.'
-      : gapCount <= 3
-      ? 'You\'re quite close! You have ' + gapCount + ' key competency gaps to address. With focused effort, this transition is very achievable.'
-      : gapCount <= 6
-      ? 'You\'re on a solid path. There are ' + gapCount + ' competencies to develop. This will require sustained effort over several months.'
-      : 'This is an ambitious goal that will require significant development across ' + gapCount + ' competencies. Plan for 12-18 months of focused growth.'
+    message: message
   };
 }
 
@@ -2859,10 +2970,13 @@ function displayCareerGuidance(guidance, currentRole, targetRole) {
   html += '<div style="font-size: 48px;">🎯</div>';
   html += '<div style="flex: 1;">';
   html += '<h3 style="font-size: 20px; font-weight: 600; color: var(--gray-900); margin: 0 0 8px 0;">Your Career Journey</h3>';
-  html += '<div style="font-size: 16px; color: var(--gray-700); margin-bottom: 12px;">';
+  html += '<div style="font-size: 16px; color: var(--gray-700); margin-bottom: 8px;">';
   html += '<strong>' + guidance.summary.current + '</strong> → <strong>' + guidance.summary.target + '</strong>';
   html += '</div>';
-  html += '<p style="font-size: 15px; color: var(--gray-700); line-height: 1.6; margin: 0;">' + guidance.summary.message + '</p>';
+  if (guidance.summary.moveType) {
+    html += '<div style="display: inline-block; padding: 4px 12px; background: var(--primary-50); color: var(--primary-700); border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 12px;">' + guidance.summary.moveType + '</div>';
+  }
+  html += '<p style="font-size: 15px; color: var(--gray-700); line-height: 1.6; margin: 8px 0 0 0;">' + guidance.summary.message + '</p>';
   html += '</div></div>';
 
   // Readiness Score
