@@ -1458,6 +1458,10 @@
       <span>🧠</span>
       Intelligence
     </button>
+    <button class="nav-tab" onclick="showTab('library')">
+      <span>📚</span>
+      Competency Library
+    </button>
   </nav>
 
   <!-- Tab: Analyzer -->
@@ -1514,6 +1518,20 @@ Responsibilities:
       </div>
 
       <div class="results-grid" id="resultsGrid"></div>
+
+      <!-- AI Recommendations -->
+      <div id="recommendationsSection" style="display: none; margin-top: 24px;">
+        <div style="padding: 16px; background: linear-gradient(135deg, rgba(0, 212, 229, 0.05), rgba(167, 139, 250, 0.05)); border: 1px solid var(--primary-300); border-radius: 12px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <span style="font-size: 24px;">🤖</span>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; color: var(--gray-900); margin: 0;">AI-Powered Competency Recommendations</h3>
+              <p style="font-size: 13px; color: var(--gray-600); margin: 4px 0 0 0;">Based on job description content and our competency library</p>
+            </div>
+          </div>
+          <div id="recommendationsList"></div>
+        </div>
+      </div>
 
       <div class="flex gap-2 mt-3">
         <button class="btn btn-success" onclick="saveCurrentAnalysis()">
@@ -1582,6 +1600,45 @@ Responsibilities:
       <div id="gapIssues"></div>
     </div>
   </div>
+
+  <!-- Tab: Competency Library -->
+  <div id="libraryTab" class="tab-content">
+    <div class="content-card">
+      <div class="card-header">
+        <h2 class="card-title">Competency Library</h2>
+        <p class="card-description">Comprehensive competency library organized by department. Get AI-powered recommendations when analyzing job descriptions.</p>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <label class="form-label">Filter by Department Type</label>
+        <select id="libraryDeptFilter" class="dept-select" onchange="loadCompetencyLibrary()">
+          <option value="">All Competencies</option>
+          <option value="Security">Security & Risk</option>
+          <option value="Engineering">Engineering & Development</option>
+          <option value="Product">Product & Design</option>
+          <option value="Sales">Sales & Business Development</option>
+          <option value="Marketing">Marketing & Communications</option>
+          <option value="Operations">Operations & Support</option>
+          <option value="HR">People & HR</option>
+          <option value="Finance">Finance & Accounting</option>
+          <option value="Leadership">Leadership & Management</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <button class="btn btn-primary" onclick="showAddCompetencyModal()">
+          <span>➕</span>
+          Add Custom Competency
+        </button>
+        <button class="btn btn-secondary" onclick="resetLibraryToDefaults()" style="margin-left: 8px;">
+          <span>🔄</span>
+          Reset to Defaults
+        </button>
+      </div>
+
+      <div id="libraryContent"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Modals -->
@@ -1625,6 +1682,293 @@ const COMP_DEFINITIONS = [
   { name: 'Knowledge Sharing', desc: 'Shares insights and best practices' },
   { name: 'Risk Management', desc: 'Identifies, assesses, and mitigates risks' }
 ];
+
+// ===== COMPREHENSIVE COMPETENCY LIBRARY =====
+
+const DEFAULT_COMPETENCY_LIBRARY = {
+  'Security': [
+    { name: 'Vulnerability Assessment', desc: 'Identifies and evaluates security vulnerabilities', keywords: ['vulnerability', 'scanning', 'assessment', 'pentesting', 'security testing'] },
+    { name: 'Threat Analysis', desc: 'Analyzes and responds to security threats', keywords: ['threat', 'analysis', 'intelligence', 'threat hunting', 'IOC'] },
+    { name: 'Incident Response', desc: 'Manages and resolves security incidents', keywords: ['incident', 'response', 'breach', 'forensics', 'investigation'] },
+    { name: 'Security Architecture', desc: 'Designs secure systems and infrastructure', keywords: ['architecture', 'secure design', 'security controls', 'defense in depth'] },
+    { name: 'Compliance & Governance', desc: 'Ensures regulatory compliance and security governance', keywords: ['compliance', 'governance', 'audit', 'SOC2', 'ISO', 'NIST', 'GDPR'] },
+    { name: 'Identity & Access Management', desc: 'Manages authentication and authorization systems', keywords: ['IAM', 'authentication', 'authorization', 'SSO', 'SAML', 'OAuth'] },
+    { name: 'Network Security', desc: 'Secures network infrastructure and communications', keywords: ['network', 'firewall', 'IDS', 'IPS', 'VPN', 'segmentation'] },
+    { name: 'Application Security', desc: 'Identifies and remediates application vulnerabilities', keywords: ['AppSec', 'SAST', 'DAST', 'code review', 'secure coding'] },
+    { name: 'Cloud Security', desc: 'Secures cloud infrastructure and services', keywords: ['cloud', 'AWS', 'Azure', 'GCP', 'CSPM', 'CWPP'] },
+    { name: 'Security Operations', desc: 'Monitors and maintains security infrastructure', keywords: ['SOC', 'SIEM', 'monitoring', 'detection', 'security operations'] },
+    { name: 'Risk Management', desc: 'Identifies, assesses, and mitigates risks', keywords: ['risk', 'risk assessment', 'mitigation', 'risk management'] },
+    { name: 'Cryptography', desc: 'Implements cryptographic solutions', keywords: ['encryption', 'cryptography', 'PKI', 'TLS', 'hashing'] }
+  ],
+  'Engineering': [
+    { name: 'Software Development', desc: 'Designs and builds software applications', keywords: ['coding', 'programming', 'development', 'software engineering'] },
+    { name: 'System Architecture', desc: 'Designs scalable system architectures', keywords: ['architecture', 'system design', 'scalability', 'microservices'] },
+    { name: 'DevOps & CI/CD', desc: 'Implements automation and deployment pipelines', keywords: ['DevOps', 'CI/CD', 'Jenkins', 'pipeline', 'automation'] },
+    { name: 'Database Management', desc: 'Designs and optimizes databases', keywords: ['database', 'SQL', 'NoSQL', 'schema', 'query optimization'] },
+    { name: 'API Design', desc: 'Designs and implements APIs', keywords: ['API', 'REST', 'GraphQL', 'integration', 'microservices'] },
+    { name: 'Testing & Quality Assurance', desc: 'Ensures software quality through testing', keywords: ['testing', 'QA', 'test automation', 'unit testing', 'integration testing'] },
+    { name: 'Performance Optimization', desc: 'Optimizes application performance', keywords: ['performance', 'optimization', 'profiling', 'scalability', 'tuning'] },
+    { name: 'Code Review', desc: 'Reviews and improves code quality', keywords: ['code review', 'peer review', 'quality', 'best practices'] },
+    { name: 'Technical Documentation', desc: 'Creates comprehensive technical documentation', keywords: ['documentation', 'technical writing', 'API docs', 'architecture docs'] },
+    { name: 'Agile Methodologies', desc: 'Applies agile development practices', keywords: ['agile', 'scrum', 'sprint', 'kanban', 'backlog'] }
+  ],
+  'Product': [
+    { name: 'Product Strategy', desc: 'Defines product vision and roadmap', keywords: ['strategy', 'vision', 'roadmap', 'product planning'] },
+    { name: 'Market Research', desc: 'Conducts market and competitive analysis', keywords: ['market research', 'competitive analysis', 'user research', 'market analysis'] },
+    { name: 'User Experience Design', desc: 'Designs intuitive user experiences', keywords: ['UX', 'user experience', 'design', 'usability', 'user interface'] },
+    { name: 'Product Analytics', desc: 'Analyzes product metrics and user behavior', keywords: ['analytics', 'metrics', 'data analysis', 'KPI', 'user behavior'] },
+    { name: 'Stakeholder Management', desc: 'Manages stakeholder relationships and expectations', keywords: ['stakeholder', 'communication', 'alignment', 'executive'] },
+    { name: 'Requirements Gathering', desc: 'Defines and prioritizes product requirements', keywords: ['requirements', 'user stories', 'backlog', 'prioritization'] },
+    { name: 'Go-to-Market Strategy', desc: 'Plans product launches and marketing', keywords: ['GTM', 'launch', 'marketing', 'positioning', 'messaging'] },
+    { name: 'A/B Testing', desc: 'Designs and analyzes product experiments', keywords: ['A/B testing', 'experimentation', 'testing', 'hypothesis'] },
+    { name: 'Product Operations', desc: 'Optimizes product processes and operations', keywords: ['product ops', 'operations', 'processes', 'efficiency'] }
+  ],
+  'Sales': [
+    { name: 'Sales Strategy', desc: 'Develops and executes sales strategies', keywords: ['sales strategy', 'territory', 'pipeline', 'quota'] },
+    { name: 'Customer Acquisition', desc: 'Identifies and acquires new customers', keywords: ['prospecting', 'lead generation', 'acquisition', 'new business'] },
+    { name: 'Account Management', desc: 'Manages customer accounts and relationships', keywords: ['account management', 'customer success', 'retention', 'expansion'] },
+    { name: 'Negotiation', desc: 'Negotiates contracts and deals', keywords: ['negotiation', 'closing', 'deal', 'contract'] },
+    { name: 'Solution Selling', desc: 'Sells complex solutions to enterprise customers', keywords: ['solution selling', 'enterprise sales', 'complex sales'] },
+    { name: 'Sales Forecasting', desc: 'Predicts sales performance and revenue', keywords: ['forecasting', 'pipeline', 'revenue prediction'] },
+    { name: 'CRM Management', desc: 'Manages customer relationship management systems', keywords: ['CRM', 'Salesforce', 'pipeline management'] },
+    { name: 'Sales Presentations', desc: 'Delivers compelling sales presentations', keywords: ['presentations', 'demos', 'pitch', 'proposal'] },
+    { name: 'Partner Management', desc: 'Develops and manages partner relationships', keywords: ['partners', 'channel', 'alliances', 'partnerships'] }
+  ],
+  'Marketing': [
+    { name: 'Content Marketing', desc: 'Creates and distributes marketing content', keywords: ['content', 'blog', 'articles', 'content strategy'] },
+    { name: 'Digital Marketing', desc: 'Executes digital marketing campaigns', keywords: ['digital', 'SEO', 'SEM', 'PPC', 'online marketing'] },
+    { name: 'Brand Management', desc: 'Builds and maintains brand identity', keywords: ['brand', 'branding', 'identity', 'positioning'] },
+    { name: 'Social Media Marketing', desc: 'Manages social media presence and campaigns', keywords: ['social media', 'Twitter', 'LinkedIn', 'Facebook', 'Instagram'] },
+    { name: 'Marketing Analytics', desc: 'Analyzes marketing performance and ROI', keywords: ['analytics', 'metrics', 'ROI', 'attribution', 'performance'] },
+    { name: 'Email Marketing', desc: 'Designs and executes email campaigns', keywords: ['email', 'newsletter', 'campaigns', 'automation'] },
+    { name: 'Event Marketing', desc: 'Plans and executes marketing events', keywords: ['events', 'conferences', 'webinars', 'trade shows'] },
+    { name: 'Marketing Automation', desc: 'Implements marketing automation platforms', keywords: ['automation', 'Marketo', 'HubSpot', 'Pardot', 'workflows'] },
+    { name: 'Demand Generation', desc: 'Generates leads and pipeline', keywords: ['demand gen', 'lead generation', 'pipeline', 'MQL'] }
+  ],
+  'Operations': [
+    { name: 'Process Optimization', desc: 'Optimizes business processes and workflows', keywords: ['process', 'optimization', 'efficiency', 'workflow'] },
+    { name: 'Project Management', desc: 'Manages projects and deliverables', keywords: ['project management', 'PM', 'delivery', 'execution'] },
+    { name: 'Vendor Management', desc: 'Manages vendor relationships and contracts', keywords: ['vendor', 'supplier', 'procurement', 'contracts'] },
+    { name: 'Budget Management', desc: 'Manages budgets and financial planning', keywords: ['budget', 'financial', 'planning', 'cost management'] },
+    { name: 'Resource Planning', desc: 'Plans and allocates resources', keywords: ['resource', 'capacity', 'allocation', 'planning'] },
+    { name: 'Customer Support', desc: 'Provides customer support and service', keywords: ['support', 'customer service', 'helpdesk', 'tickets'] },
+    { name: 'Quality Management', desc: 'Ensures quality standards and processes', keywords: ['quality', 'standards', 'QA', 'improvement'] },
+    { name: 'Supply Chain Management', desc: 'Manages supply chain operations', keywords: ['supply chain', 'logistics', 'inventory', 'procurement'] }
+  ],
+  'HR': [
+    { name: 'Talent Acquisition', desc: 'Recruits and hires top talent', keywords: ['recruiting', 'hiring', 'talent acquisition', 'sourcing'] },
+    { name: 'Employee Relations', desc: 'Manages employee relationships and engagement', keywords: ['employee relations', 'engagement', 'culture', 'retention'] },
+    { name: 'Performance Management', desc: 'Manages performance review processes', keywords: ['performance', 'reviews', 'feedback', 'goals'] },
+    { name: 'Compensation & Benefits', desc: 'Designs compensation and benefits programs', keywords: ['compensation', 'benefits', 'salary', 'equity', 'rewards'] },
+    { name: 'Learning & Development', desc: 'Develops training and development programs', keywords: ['learning', 'training', 'development', 'L&D', 'education'] },
+    { name: 'HR Operations', desc: 'Manages HR processes and systems', keywords: ['HR ops', 'HRIS', 'payroll', 'onboarding', 'offboarding'] },
+    { name: 'Diversity & Inclusion', desc: 'Promotes diversity and inclusion initiatives', keywords: ['diversity', 'inclusion', 'DEI', 'belonging'] },
+    { name: 'Organizational Development', desc: 'Designs organizational structures and change', keywords: ['org dev', 'change management', 'structure', 'transformation'] }
+  ],
+  'Finance': [
+    { name: 'Financial Planning & Analysis', desc: 'Analyzes financial performance and plans', keywords: ['FP&A', 'financial planning', 'forecasting', 'analysis'] },
+    { name: 'Accounting', desc: 'Manages accounting and financial reporting', keywords: ['accounting', 'bookkeeping', 'general ledger', 'GAAP'] },
+    { name: 'Financial Modeling', desc: 'Builds financial models and projections', keywords: ['modeling', 'projections', 'valuation', 'DCF'] },
+    { name: 'Budgeting', desc: 'Creates and manages budgets', keywords: ['budget', 'budgeting', 'planning', 'allocation'] },
+    { name: 'Audit & Compliance', desc: 'Ensures financial compliance and audits', keywords: ['audit', 'compliance', 'SOX', 'internal controls'] },
+    { name: 'Treasury Management', desc: 'Manages cash flow and treasury operations', keywords: ['treasury', 'cash flow', 'liquidity', 'working capital'] },
+    { name: 'Tax Management', desc: 'Manages tax compliance and strategy', keywords: ['tax', 'taxation', 'tax planning', 'compliance'] },
+    { name: 'Investor Relations', desc: 'Manages relationships with investors', keywords: ['investor relations', 'IR', 'investors', 'earnings'] }
+  ],
+  'Leadership': [
+    { name: 'Strategic Planning', desc: 'Develops long-term strategy and vision', keywords: ['strategy', 'strategic planning', 'vision', 'mission'] },
+    { name: 'Team Building', desc: 'Builds and develops high-performing teams', keywords: ['team building', 'team development', 'hiring', 'culture'] },
+    { name: 'Change Management', desc: 'Leads organizational change initiatives', keywords: ['change', 'transformation', 'change management', 'adoption'] },
+    { name: 'Executive Communication', desc: 'Communicates effectively with executives and board', keywords: ['executive', 'board', 'C-level', 'presentation'] },
+    { name: 'Business Acumen', desc: 'Understands business operations and drivers', keywords: ['business', 'commercial', 'P&L', 'revenue'] },
+    { name: 'Decision Making', desc: 'Makes informed strategic decisions', keywords: ['decision', 'judgment', 'critical thinking', 'analysis'] },
+    { name: 'Coaching & Mentoring', desc: 'Coaches and mentors leaders and teams', keywords: ['coaching', 'mentoring', 'development', 'feedback'] },
+    { name: 'Conflict Resolution', desc: 'Resolves conflicts and builds consensus', keywords: ['conflict', 'resolution', 'consensus', 'mediation'] },
+    { name: 'Cross-functional Leadership', desc: 'Leads across organizational boundaries', keywords: ['cross-functional', 'collaboration', 'influence', 'alignment'] }
+  ]
+};
+
+function getCompetencyLibrary() {
+  const saved = localStorage.getItem('competencyLibrary');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse competency library:', e);
+      return DEFAULT_COMPETENCY_LIBRARY;
+    }
+  }
+  return DEFAULT_COMPETENCY_LIBRARY;
+}
+
+function saveCompetencyLibrary(library) {
+  localStorage.setItem('competencyLibrary', JSON.stringify(library));
+}
+
+function resetLibraryToDefaults() {
+  if (confirm('Reset competency library to defaults? This will remove any custom competencies.')) {
+    saveCompetencyLibrary(DEFAULT_COMPETENCY_LIBRARY);
+    loadCompetencyLibrary();
+    showToast('Competency library reset to defaults', 'success');
+  }
+}
+
+function loadCompetencyLibrary() {
+  const library = getCompetencyLibrary();
+  const filter = document.getElementById('libraryDeptFilter').value;
+  const container = document.getElementById('libraryContent');
+
+  let html = '';
+
+  const depts = filter ? [filter] : Object.keys(library);
+
+  depts.forEach(dept => {
+    const comps = library[dept] || [];
+
+    html += '<div style="margin-bottom: 32px;">';
+    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">';
+    html += '<h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900);">' + dept + '</h3>';
+    html += '<span style="font-size: 14px; color: var(--gray-500);">' + comps.length + ' competencies</span>';
+    html += '</div>';
+
+    if (comps.length === 0) {
+      html += '<p style="color: var(--gray-500); font-size: 14px;">No competencies defined for this category.</p>';
+    } else {
+      html += '<div style="display: grid; gap: 12px;">';
+      comps.forEach((comp, index) => {
+        html += '<div class="position-card" style="padding: 16px;">';
+        html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">';
+        html += '<div style="flex: 1;">';
+        html += '<div style="font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">' + comp.name + '</div>';
+        html += '<div style="font-size: 13px; color: var(--gray-600);">' + comp.desc + '</div>';
+        html += '</div>';
+        html += '<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="deleteCompetency(\'' + dept + '\', ' + index + ')">Delete</button>';
+        html += '</div>';
+
+        if (comp.keywords && comp.keywords.length > 0) {
+          html += '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">';
+          comp.keywords.forEach(keyword => {
+            html += '<span style="background: var(--gray-100); color: var(--gray-700); padding: 4px 8px; border-radius: 4px; font-size: 11px;">' + keyword + '</span>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function deleteCompetency(dept, index) {
+  if (!confirm('Delete this competency?')) return;
+
+  const library = getCompetencyLibrary();
+  library[dept].splice(index, 1);
+  saveCompetencyLibrary(library);
+  loadCompetencyLibrary();
+  showToast('Competency deleted', 'success');
+}
+
+function showAddCompetencyModal() {
+  const library = getCompetencyLibrary();
+  const depts = Object.keys(library);
+
+  let html = '<div class="form-group">';
+  html += '<label class="form-label">Department</label>';
+  html += '<select id="newCompDept" class="dept-select">';
+  depts.forEach(dept => {
+    html += '<option value="' + dept + '">' + dept + '</option>';
+  });
+  html += '</select></div>';
+
+  html += '<div class="form-group">';
+  html += '<label class="form-label">Competency Name</label>';
+  html += '<input type="text" id="newCompName" class="modal-input" placeholder="e.g., Security Architecture">';
+  html += '</div>';
+
+  html += '<div class="form-group">';
+  html += '<label class="form-label">Description</label>';
+  html += '<textarea id="newCompDesc" class="form-textarea" rows="2" placeholder="Brief description of this competency"></textarea>';
+  html += '</div>';
+
+  html += '<div class="form-group">';
+  html += '<label class="form-label">Keywords (comma-separated)</label>';
+  html += '<input type="text" id="newCompKeywords" class="modal-input" placeholder="e.g., architecture, design, security">';
+  html += '</div>';
+
+  showModal('Add Custom Competency', html, addCustomCompetency);
+}
+
+function addCustomCompetency() {
+  const dept = document.getElementById('newCompDept').value;
+  const name = document.getElementById('newCompName').value.trim();
+  const desc = document.getElementById('newCompDesc').value.trim();
+  const keywordsStr = document.getElementById('newCompKeywords').value.trim();
+
+  if (!name || !desc) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+
+  const keywords = keywordsStr ? keywordsStr.split(',').map(k => k.trim()).filter(k => k) : [];
+
+  const library = getCompetencyLibrary();
+  if (!library[dept]) library[dept] = [];
+
+  library[dept].push({ name, desc, keywords });
+  saveCompetencyLibrary(library);
+  loadCompetencyLibrary();
+  closeModal();
+  showToast('Competency added successfully', 'success');
+}
+
+// ===== AI-POWERED COMPETENCY RECOMMENDATIONS =====
+
+function recommendCompetencies(jobDescription) {
+  const library = getCompetencyLibrary();
+  const recommendations = [];
+  const jdLower = jobDescription.toLowerCase();
+
+  // Analyze job description and match against competency keywords
+  Object.keys(library).forEach(dept => {
+    library[dept].forEach(comp => {
+      let matchScore = 0;
+      let matchedKeywords = [];
+
+      if (comp.keywords) {
+        comp.keywords.forEach(keyword => {
+          if (jdLower.includes(keyword.toLowerCase())) {
+            matchScore++;
+            matchedKeywords.push(keyword);
+          }
+        });
+      }
+
+      // Also check if competency name appears in JD
+      if (jdLower.includes(comp.name.toLowerCase())) {
+        matchScore += 2;
+      }
+
+      if (matchScore > 0) {
+        recommendations.push({
+          dept,
+          comp,
+          score: matchScore,
+          matchedKeywords
+        });
+      }
+    });
+  });
+
+  // Sort by score descending
+  recommendations.sort((a, b) => b.score - a.score);
+
+  return recommendations.slice(0, 10); // Return top 10 recommendations
+}
 
 // ===== DEPARTMENT MANAGEMENT =====
 
@@ -2112,7 +2456,10 @@ function doAnalysis() {
   lastAnalysis = checks;
   lastExtractedLevel = extractJobLevel(text);
 
-  displayResults(checks);
+  // Get AI recommendations
+  const recommendations = recommendCompetencies(text);
+
+  displayResults(checks, recommendations, text);
 }
 
 function checkLevel(text, expert, advanced, competent, developing) {
@@ -2151,7 +2498,7 @@ function extractJobLevel(text) {
   return 'Not Specified';
 }
 
-function displayResults(results) {
+function displayResults(results, recommendations, jobDescription) {
   const counts = {E: 0, A: 0, C: 0, D: 0};
   results.forEach(r => counts[r.level]++);
 
@@ -2185,16 +2532,90 @@ function displayResults(results) {
   });
 
   document.getElementById('resultsGrid').innerHTML = gridHtml;
+
+  // Display recommendations
+  if (recommendations && recommendations.length > 0) {
+    const recSection = document.getElementById('recommendationsSection');
+    const recList = document.getElementById('recommendationsList');
+
+    let recHtml = '<div style="font-size: 13px; color: var(--gray-700); margin-bottom: 12px;">Found <strong>' + recommendations.length + '</strong> relevant competencies from the library:</div>';
+    recHtml += '<div style="display: grid; gap: 10px;">';
+
+    recommendations.forEach(rec => {
+      // Check if already in current analysis
+      const alreadyAdded = results.some(r => r.name === rec.comp.name);
+
+      recHtml += '<div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">';
+      recHtml += '<div style="flex: 1;">';
+      recHtml += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">';
+      recHtml += '<span style="font-weight: 600; color: var(--gray-900);">' + rec.comp.name + '</span>';
+      recHtml += '<span style="background: var(--primary-50); color: var(--primary-700); padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">' + rec.dept + '</span>';
+      recHtml += '<span style="background: var(--gray-100); color: var(--gray-700); padding: 2px 8px; border-radius: 12px; font-size: 11px;">Match: ' + rec.score + '</span>';
+      recHtml += '</div>';
+      recHtml += '<div style="font-size: 12px; color: var(--gray-600);">' + rec.comp.desc + '</div>';
+
+      if (rec.matchedKeywords.length > 0) {
+        recHtml += '<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">';
+        rec.matchedKeywords.slice(0, 5).forEach(kw => {
+          recHtml += '<span style="background: var(--success-50); color: var(--success-600); padding: 2px 6px; border-radius: 4px; font-size: 10px;">✓ ' + kw + '</span>';
+        });
+        recHtml += '</div>';
+      }
+
+      recHtml += '</div>';
+
+      if (alreadyAdded) {
+        recHtml += '<span style="font-size: 12px; color: var(--gray-500);">✓ Already added</span>';
+      } else {
+        recHtml += '<button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;" onclick="addRecommendedCompetency(\'' + rec.comp.name.replace(/'/g, "\\'") + '\', \'' + rec.comp.desc.replace(/'/g, "\\'") + '\')">+ Add</button>';
+      }
+
+      recHtml += '</div>';
+    });
+
+    recHtml += '</div>';
+
+    recList.innerHTML = recHtml;
+    recSection.style.display = 'block';
+  } else {
+    document.getElementById('recommendationsSection').style.display = 'none';
+  }
+
   document.getElementById('resultsCard').style.display = 'block';
 
   document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function addRecommendedCompetency(name, desc) {
+  if (!lastAnalysis) return;
+
+  // Check if already exists
+  if (lastAnalysis.some(c => c.name === name)) {
+    showToast('Competency already in analysis', 'info');
+    return;
+  }
+
+  // Add with default 'C' level
+  lastAnalysis.push({ name: name, level: 'C' });
+
+  // Get current job description text
+  const text = document.getElementById('input').value;
+  const recommendations = recommendCompetencies(text);
+
+  displayResults(lastAnalysis, recommendations, text);
+  showToast('Competency added: ' + name, 'success');
 }
 
 function updateAnalysisLevel(compIndex, newLevel) {
   if (!lastAnalysis || !lastAnalysis[compIndex]) return;
 
   lastAnalysis[compIndex].level = newLevel;
-  displayResults(lastAnalysis);
+
+  // Get current job description text and recommendations
+  const text = document.getElementById('input').value;
+  const recommendations = recommendCompetencies(text);
+
+  displayResults(lastAnalysis, recommendations, text);
 }
 
 function getLevelName(level) {
@@ -3467,6 +3888,10 @@ function showTab(tabName) {
     document.querySelectorAll('.nav-tab')[4].classList.add('active');
     document.getElementById('gapTab').classList.add('active');
     loadGapAnalysis();
+  } else if (tabName === 'library') {
+    document.querySelectorAll('.nav-tab')[5].classList.add('active');
+    document.getElementById('libraryTab').classList.add('active');
+    loadCompetencyLibrary();
   }
 }
 
