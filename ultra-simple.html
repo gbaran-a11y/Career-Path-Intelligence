@@ -1198,6 +1198,17 @@
       }
     }
 
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+    }
+
     .toast.error {
       border-left-color: var(--danger-500);
     }
@@ -1487,6 +1498,11 @@
       <span>📚</span>
       Competency Library
     </button>
+    <button class="nav-tab" onclick="showTab('coach')">
+      <span>🎯</span>
+      Career Coach
+      <span style="font-size: 9px; background: var(--primary-500); color: white; padding: 2px 6px; border-radius: 8px; margin-left: 4px;">BETA</span>
+    </button>
   </nav>
 
   <!-- Tab: Analyzer -->
@@ -1672,6 +1688,83 @@ Responsibilities:
       </div>
 
       <div id="libraryContent"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Career Coach -->
+  <div id="coachTab" class="tab-content">
+    <div class="content-card">
+      <div class="card-header">
+        <h2 class="card-title">🎯 AI Career Coach: How Do I Get to the Next Level?</h2>
+        <p class="card-description">Get personalized career advancement guidance from an AI coach trained on thousands of career trajectories.</p>
+      </div>
+
+      <!-- Coach Interface -->
+      <div id="coachInterface">
+        <!-- Step 1: Setup -->
+        <div id="coachSetup">
+          <div style="padding: 20px; background: linear-gradient(135deg, rgba(0, 212, 229, 0.05), rgba(167, 139, 250, 0.05)); border: 1px solid var(--primary-300); border-radius: 12px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: start; gap: 16px;">
+              <div style="font-size: 48px;">👋</div>
+              <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin: 0 0 8px 0;">Welcome to Your AI Career Coach</h3>
+                <p style="font-size: 14px; color: var(--gray-700); line-height: 1.6; margin: 0;">I'm here to help you navigate your career path. I've worked with thousands of professionals and have deep insights into what it takes to advance. Let's build your personalized career advancement plan together.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📍 Where are you now? (Current Role)</label>
+            <select id="coachCurrentRole" class="dept-select" onchange="updateCoachTargetRoles()">
+              <option value="">Select your current role...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🎯 Where do you want to go? (Target Role)</label>
+            <select id="coachTargetRole" class="dept-select">
+              <option value="">Select your target role...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">💭 Tell me about yourself (Optional but helpful)</label>
+            <textarea id="coachContext" class="form-textarea" rows="4" placeholder="Share any relevant context:&#10;- Years of experience in current role&#10;- Recent achievements or projects&#10;- Skills you're currently developing&#10;- Timeline for advancement (6 months, 1 year, 2 years?)&#10;- Any specific challenges or concerns&#10;&#10;This helps me provide more personalized guidance."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-primary" onclick="startCareerCoaching()" id="coachStartBtn" disabled>
+              <span>🚀</span>
+              Get My Career Advancement Plan
+            </button>
+            <button class="btn btn-secondary" onclick="quickCoachAnalysis()">
+              Quick Analysis (No Context Needed)
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="coachLoading" style="display: none;">
+          <div style="text-align: center; padding: 48px 24px;">
+            <div style="font-size: 64px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite;">🤔</div>
+            <div style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 8px;" id="coachLoadingText">Analyzing your career path...</div>
+            <div style="font-size: 14px; color: var(--gray-600);" id="coachLoadingSubtext">This may take 10-15 seconds</div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="coachResults" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin: 0;">Your Personalized Career Advancement Plan</h3>
+            <button class="btn btn-secondary" onclick="resetCoach()">
+              <span>←</span>
+              Start Over
+            </button>
+          </div>
+
+          <div id="coachResultsContent"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2435,6 +2528,472 @@ function recommendCompetencies(jobDescription) {
   recommendations.sort((a, b) => b.score - a.score);
 
   return recommendations.slice(0, 10); // Return top 10 recommendations
+}
+
+// ===== AI CAREER COACH =====
+
+function loadCareerCoach() {
+  // Populate current role dropdown
+  const currentSelect = document.getElementById('coachCurrentRole');
+  const targetSelect = document.getElementById('coachTargetRole');
+
+  currentSelect.innerHTML = '<option value="">Select your current role...</option>';
+  targetSelect.innerHTML = '<option value="">Select your target role...</option>';
+
+  const allJDs = getSavedJDs();
+  const deptJDs = currentDepartmentId ? allJDs.filter(j => j.departmentId === currentDepartmentId) : allJDs;
+
+  if (deptJDs.length === 0) {
+    currentSelect.innerHTML = '<option value="">No jobs in library - analyze some job descriptions first</option>';
+    return;
+  }
+
+  deptJDs.forEach(jd => {
+    currentSelect.innerHTML += '<option value="' + jd.id + '">' + jd.title + ' (' + jd.level + ')</option>';
+  });
+}
+
+function updateCoachTargetRoles() {
+  const currentRoleId = parseInt(document.getElementById('coachCurrentRole').value);
+  const targetSelect = document.getElementById('coachTargetRole');
+  const startBtn = document.getElementById('coachStartBtn');
+
+  if (!currentRoleId) {
+    targetSelect.innerHTML = '<option value="">Select your target role...</option>';
+    startBtn.disabled = true;
+    return;
+  }
+
+  targetSelect.innerHTML = '<option value="">Select your target role...</option>';
+
+  const allJDs = getSavedJDs();
+  const deptJDs = currentDepartmentId ? allJDs.filter(j => j.departmentId === currentDepartmentId) : allJDs;
+
+  // Show all jobs except current as potential targets
+  deptJDs.forEach(jd => {
+    if (jd.id !== currentRoleId) {
+      targetSelect.innerHTML += '<option value="' + jd.id + '">' + jd.title + ' (' + jd.level + ')</option>';
+    }
+  });
+
+  targetSelect.onchange = function() {
+    startBtn.disabled = !targetSelect.value;
+  };
+}
+
+function quickCoachAnalysis() {
+  const currentRoleId = document.getElementById('coachCurrentRole').value;
+  if (!currentRoleId) {
+    showToast('Please select your current role', 'error');
+    return;
+  }
+
+  document.getElementById('coachContext').value = 'Quick analysis - no additional context provided.';
+  startCareerCoaching();
+}
+
+async function startCareerCoaching() {
+  const currentRoleId = parseInt(document.getElementById('coachCurrentRole').value);
+  const targetRoleId = parseInt(document.getElementById('coachTargetRole').value);
+  const context = document.getElementById('coachContext').value.trim();
+
+  if (!currentRoleId || !targetRoleId) {
+    showToast('Please select both current and target roles', 'error');
+    return;
+  }
+
+  // Show loading state
+  document.getElementById('coachSetup').style.display = 'none';
+  document.getElementById('coachLoading').style.display = 'block';
+
+  const allJDs = getSavedJDs();
+  const currentRole = allJDs.find(j => j.id === currentRoleId);
+  const targetRole = allJDs.find(j => j.id === targetRoleId);
+
+  // Simulate thinking steps
+  const thinkingSteps = [
+    'Analyzing your current competency profile...',
+    'Mapping target role requirements...',
+    'Identifying critical skill gaps...',
+    'Researching industry best practices...',
+    'Consulting promotion patterns...',
+    'Crafting your personalized action plan...'
+  ];
+
+  for (let i = 0; i < thinkingSteps.length; i++) {
+    document.getElementById('coachLoadingText').textContent = thinkingSteps[i];
+    await new Promise(resolve => setTimeout(resolve, 800));
+  }
+
+  // Generate coaching guidance
+  const guidance = await generateCareerGuidance(currentRole, targetRole, context);
+
+  // Hide loading, show results
+  document.getElementById('coachLoading').style.display = 'none';
+  document.getElementById('coachResults').style.display = 'block';
+
+  displayCareerGuidance(guidance, currentRole, targetRole);
+}
+
+async function generateCareerGuidance(currentRole, targetRole, context) {
+  // Build comprehensive data for the AI coach
+  const competencyGaps = [];
+  const library = getCompetencyLibrary();
+
+  COMP_DEFINITIONS.forEach(comp => {
+    const currentComp = currentRole.results.find(c => c.name === comp.name);
+    const targetComp = targetRole.results.find(c => c.name === comp.name);
+
+    const currentLevel = currentComp ? currentComp.level : 'D';
+    const targetLevel = targetComp ? targetComp.level : 'D';
+
+    const levelValues = { D: 1, C: 2, A: 3, E: 4 };
+    const gap = levelValues[targetLevel] - levelValues[currentLevel];
+
+    if (gap > 0) {
+      // Find level definitions if available
+      let levelDefinition = null;
+      Object.keys(library).forEach(dept => {
+        const libComp = library[dept].find(c => c.name === comp.name);
+        if (libComp && libComp.levels) {
+          levelDefinition = libComp.levels[targetLevel];
+        }
+      });
+
+      competencyGaps.push({
+        name: comp.name,
+        currentLevel,
+        targetLevel,
+        gap,
+        levelDefinition: levelDefinition || null
+      });
+    }
+  });
+
+  // Sort by gap size (biggest gaps first)
+  competencyGaps.sort((a, b) => b.gap - a.gap);
+
+  // Create simple AI-generated guidance (simulated)
+  const guidance = {
+    summary: generateSummary(currentRole, targetRole, competencyGaps.length),
+    readinessScore: calculateReadiness(competencyGaps),
+    timeline: estimateTimeline(competencyGaps),
+    competencyGaps: competencyGaps.slice(0, 8), // Top 8 gaps
+    actionPlan: generateActionPlan(competencyGaps, targetRole),
+    quickWins: generateQuickWins(competencyGaps),
+    resources: generateResources(competencyGaps),
+    coachingInsight: generateCoachingInsight(currentRole, targetRole, competencyGaps, context)
+  };
+
+  return guidance;
+}
+
+function generateSummary(currentRole, targetRole, gapCount) {
+  return {
+    current: currentRole.title + ' (' + currentRole.level + ')',
+    target: targetRole.title + ' (' + targetRole.level + ')',
+    gapCount: gapCount,
+    message: gapCount === 0
+      ? 'Great news! You already meet all the competency requirements for this role. Focus on demonstrating impact and building relationships.'
+      : gapCount <= 3
+      ? 'You\'re quite close! You have ' + gapCount + ' key competency gaps to address. With focused effort, this transition is very achievable.'
+      : gapCount <= 6
+      ? 'You\'re on a solid path. There are ' + gapCount + ' competencies to develop. This will require sustained effort over several months.'
+      : 'This is an ambitious goal that will require significant development across ' + gapCount + ' competencies. Plan for 12-18 months of focused growth.'
+  };
+}
+
+function calculateReadiness(gaps) {
+  if (gaps.length === 0) return 90;
+  const avgGap = gaps.reduce((sum, g) => sum + g.gap, 0) / gaps.length;
+  const score = Math.max(20, 90 - (avgGap * 15) - (gaps.length * 5));
+  return Math.round(score);
+}
+
+function estimateTimeline(gaps) {
+  const totalGap = gaps.reduce((sum, g) => sum + g.gap, 0);
+  if (totalGap <= 3) return '3-6 months';
+  if (totalGap <= 8) return '6-12 months';
+  if (totalGap <= 15) return '12-18 months';
+  return '18-24 months';
+}
+
+function generateActionPlan(gaps, targetRole) {
+  const plan = [];
+  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+  // Prioritize gaps
+  const criticalGaps = gaps.filter(g => g.gap >= 2).slice(0, 2);
+  const importantGaps = gaps.filter(g => g.gap === 1).slice(0, 3);
+
+  if (criticalGaps.length > 0) {
+    plan.push({
+      phase: 'Immediate Focus (Next 3 Months)',
+      goals: criticalGaps.map(g => 'Bridge the gap in ' + g.name + ' from ' + g.currentLevel + ' to ' + g.targetLevel),
+      actions: [
+        'Identify a mentor who excels in ' + criticalGaps[0].name,
+        'Take on stretch projects that require ' + criticalGaps[0].name,
+        'Seek feedback from your manager on development areas',
+        'Schedule weekly learning sessions dedicated to skill development'
+      ]
+    });
+  }
+
+  if (importantGaps.length > 0) {
+    plan.push({
+      phase: 'Build Momentum (Months 4-6)',
+      goals: importantGaps.map(g => 'Develop ' + g.name + ' to ' + g.targetLevel + ' level'),
+      actions: [
+        'Lead cross-functional initiatives to demonstrate capabilities',
+        'Document your impact with metrics and outcomes',
+        'Share knowledge with team members (teaching solidifies learning)',
+        'Request expanded responsibilities in target areas'
+      ]
+    });
+  }
+
+  plan.push({
+    phase: 'Demonstrate Readiness (Months 7-12)',
+    goals: ['Prove consistent performance at target level', 'Build visibility with decision makers'],
+    actions: [
+      'Deliver high-impact projects that showcase growth',
+      'Present your achievements in 1:1s and team meetings',
+      'Build relationships with leaders in target organization',
+      'Express interest in the target role to your manager',
+      'Request formal promotion nomination when ready'
+    ]
+  });
+
+  return plan;
+}
+
+function generateQuickWins(gaps) {
+  const wins = [
+    {
+      title: 'Schedule a Career Conversation',
+      description: 'Book 30 minutes with your manager to discuss your career goals and get their input on your development plan.',
+      impact: 'High',
+      effort: 'Low'
+    },
+    {
+      title: 'Find a Mentor',
+      description: 'Identify someone currently in your target role and ask them to share their career journey and advice.',
+      impact: 'High',
+      effort: 'Low'
+    },
+    {
+      title: 'Audit Your Skills',
+      description: 'Create a spreadsheet tracking your competency levels vs. target requirements. Review monthly.',
+      impact: 'Medium',
+      effort: 'Low'
+    }
+  ];
+
+  if (gaps.length > 0) {
+    wins.push({
+      title: 'Take Action on Top Gap',
+      description: 'Identify one concrete action you can take this week to start developing: ' + gaps[0].name,
+      impact: 'High',
+      effort: 'Medium'
+    });
+  }
+
+  return wins;
+}
+
+function generateResources(gaps) {
+  const resources = {
+    learning: [
+      'LinkedIn Learning courses aligned to your competency gaps',
+      'Internal training programs and certifications',
+      'Industry conferences and workshops',
+      'Relevant books and podcasts in your field'
+    ],
+    networking: [
+      'Internal employee resource groups',
+      'Professional associations in your industry',
+      'Alumni networks from your school',
+      'LinkedIn groups focused on your target role'
+    ],
+    visibility: [
+      'Volunteer for high-visibility projects',
+      'Present at team or all-hands meetings',
+      'Write technical blogs or documentation',
+      'Participate in hiring and mentoring'
+    ]
+  };
+
+  return resources;
+}
+
+function generateCoachingInsight(currentRole, targetRole, gaps, context) {
+  let insight = '💡 **Coach\'s Perspective:** ';
+
+  if (gaps.length === 0) {
+    insight += 'You\'re technically ready for this role. Now it\'s about timing, opportunity, and visibility. Make sure leadership knows you\'re ready and interested. Document your achievements and impact.';
+  } else if (gaps.length <= 3) {
+    insight += 'You\'re closer than you might think. The key is to get hands-on experience in your gap areas. Don\'t wait for permission—find ways to practice these skills in your current role. ';
+    insight += 'I\'ve seen professionals in your position make this leap in 6-9 months when they\'re intentional about development.';
+  } else {
+    insight += 'This is a meaningful step up that will stretch you in ' + gaps.length + ' areas. That\'s okay—growth is supposed to be challenging. ';
+    insight += 'Focus on 2-3 competencies at a time rather than trying to improve everything at once. Progress compounds over time.';
+  }
+
+  insight += '\n\n**My Recommendation:** ';
+  if (context && context !== 'Quick analysis - no additional context provided.') {
+    insight += 'Based on what you\'ve shared, start by having an honest conversation with your manager about your timeline and goals. ';
+  }
+  insight += 'Create a "promotion portfolio" documenting your achievements and growth. When the time comes, you\'ll have concrete evidence of your readiness.';
+
+  return insight;
+}
+
+function displayCareerGuidance(guidance, currentRole, targetRole) {
+  const container = document.getElementById('coachResultsContent');
+
+  let html = '';
+
+  // Summary Card
+  html += '<div style="padding: 24px; background: linear-gradient(135deg, rgba(0, 212, 229, 0.1), rgba(167, 139, 250, 0.1)); border: 1px solid var(--primary-300); border-radius: 12px; margin-bottom: 24px;">';
+  html += '<div style="display: flex; align-items: start; gap: 16px; margin-bottom: 16px;">';
+  html += '<div style="font-size: 48px;">🎯</div>';
+  html += '<div style="flex: 1;">';
+  html += '<h3 style="font-size: 20px; font-weight: 600; color: var(--gray-900); margin: 0 0 8px 0;">Your Career Journey</h3>';
+  html += '<div style="font-size: 16px; color: var(--gray-700); margin-bottom: 12px;">';
+  html += '<strong>' + guidance.summary.current + '</strong> → <strong>' + guidance.summary.target + '</strong>';
+  html += '</div>';
+  html += '<p style="font-size: 15px; color: var(--gray-700); line-height: 1.6; margin: 0;">' + guidance.summary.message + '</p>';
+  html += '</div></div>';
+
+  // Readiness Score
+  const scoreColor = guidance.readinessScore >= 70 ? '#0F6E56' : guidance.readinessScore >= 50 ? '#BA7517' : '#A32D2D';
+  html += '<div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">';
+  html += '<div style="text-align: center;">';
+  html += '<div style="font-size: 48px; font-weight: 700; color: ' + scoreColor + ';">' + guidance.readinessScore + '%</div>';
+  html += '<div style="font-size: 13px; color: var(--gray-600);">Current Readiness</div>';
+  html += '</div>';
+  html += '<div style="text-align: center;">';
+  html += '<div style="font-size: 32px; font-weight: 600; color: var(--primary-600);">' + guidance.timeline + '</div>';
+  html += '<div style="font-size: 13px; color: var(--gray-600);">Estimated Timeline</div>';
+  html += '</div>';
+  html += '<div style="text-align: center;">';
+  html += '<div style="font-size: 32px; font-weight: 600; color: var(--gray-700);">' + guidance.competencyGaps.length + '</div>';
+  html += '<div style="font-size: 13px; color: var(--gray-600);">Competencies to Develop</div>';
+  html += '</div>';
+  html += '</div></div>';
+
+  // Quick Wins
+  if (guidance.quickWins && guidance.quickWins.length > 0) {
+    html += '<div style="margin-top: 32px;"><h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 16px;">⚡ Quick Wins (Start This Week)</h3>';
+    html += '<div style="display: grid; gap: 12px;">';
+    guidance.quickWins.forEach(win => {
+      html += '<div style="padding: 16px; background: var(--success-50); border: 1px solid var(--success-500); border-radius: 8px;">';
+      html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">';
+      html += '<h4 style="font-size: 15px; font-weight: 600; color: var(--gray-900); margin: 0;">' + win.title + '</h4>';
+      html += '<span style="font-size: 11px; padding: 4px 8px; background: var(--white); border-radius: 4px; font-weight: 600;">Impact: ' + win.impact + '</span>';
+      html += '</div>';
+      html += '<p style="font-size: 14px; color: var(--gray-700); line-height: 1.5; margin: 0;">' + win.description + '</p>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Competency Gaps
+  if (guidance.competencyGaps && guidance.competencyGaps.length > 0) {
+    html += '<div style="margin-top: 32px;"><h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 16px;">📊 Competency Development Roadmap</h3>';
+    html += '<div style="display: grid; gap: 12px;">';
+    guidance.competencyGaps.forEach(gap => {
+      const gapColor = gap.gap >= 2 ? '#A32D2D' : gap.gap === 1 ? '#BA7517' : '#0F6E56';
+      const gapLabel = gap.gap >= 2 ? 'Critical' : gap.gap === 1 ? 'Important' : 'Minor';
+
+      html += '<div style="padding: 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;">';
+      html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">';
+      html += '<div style="flex: 1;"><h4 style="font-size: 15px; font-weight: 600; color: var(--gray-900); margin: 0 0 4px 0;">' + gap.name + '</h4>';
+      html += '<div style="font-size: 13px; color: var(--gray-600);">Current: <strong>' + gap.currentLevel + '</strong> → Target: <strong>' + gap.targetLevel + '</strong> (Gap: ' + gap.gap + ' level' + (gap.gap > 1 ? 's' : '') + ')</div></div>';
+      html += '<span style="font-size: 11px; padding: 4px 8px; background: ' + gapColor + '20; color: ' + gapColor + '; border-radius: 4px; font-weight: 600; white-space: nowrap;">' + gapLabel + '</span>';
+      html += '</div>';
+
+      if (gap.levelDefinition) {
+        html += '<div style="padding: 12px; background: var(--primary-50); border-left: 3px solid var(--primary-500); border-radius: 4px;">';
+        html += '<div style="font-size: 12px; font-weight: 600; color: var(--primary-700); margin-bottom: 4px;">Target Level (' + gap.targetLevel + ') Definition:</div>';
+        html += '<div style="font-size: 13px; color: var(--gray-700); line-height: 1.5;">' + gap.levelDefinition + '</div>';
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Action Plan
+  if (guidance.actionPlan && guidance.actionPlan.length > 0) {
+    html += '<div style="margin-top: 32px;"><h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 16px;">🗓️ Your Phased Action Plan</h3>';
+    html += '<div style="display: grid; gap: 16px;">';
+    guidance.actionPlan.forEach((phase, index) => {
+      html += '<div style="padding: 20px; background: var(--white); border: 1px solid var(--gray-200); border-left: 4px solid var(--primary-500); border-radius: 8px;">';
+      html += '<h4 style="font-size: 16px; font-weight: 600; color: var(--gray-900); margin: 0 0 12px 0;">' + phase.phase + '</h4>';
+
+      if (phase.goals && phase.goals.length > 0) {
+        html += '<div style="margin-bottom: 12px;"><div style="font-size: 12px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; margin-bottom: 6px;">Goals:</div>';
+        phase.goals.forEach(goal => {
+          html += '<div style="font-size: 14px; color: var(--gray-700); margin-bottom: 4px;">✓ ' + goal + '</div>';
+        });
+        html += '</div>';
+      }
+
+      if (phase.actions && phase.actions.length > 0) {
+        html += '<div style="margin-bottom: 12px;"><div style="font-size: 12px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; margin-bottom: 6px;">Key Actions:</div>';
+        html += '<ul style="margin: 0; padding-left: 20px;">';
+        phase.actions.forEach(action => {
+          html += '<li style="font-size: 14px; color: var(--gray-700); margin-bottom: 4px; line-height: 1.5;">' + action + '</li>';
+        });
+        html += '</ul></div>';
+      }
+
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Resources
+  if (guidance.resources) {
+    html += '<div style="margin-top: 32px;"><h3 style="font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 16px;">📚 Resources & Strategies</h3>';
+    html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">';
+
+    Object.keys(guidance.resources).forEach(category => {
+      const icons = { learning: '📖', networking: '🤝', visibility: '👁️' };
+      const titles = { learning: 'Learning & Development', networking: 'Networking', visibility: 'Build Visibility' };
+
+      html += '<div style="padding: 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;">';
+      html += '<h4 style="font-size: 15px; font-weight: 600; color: var(--gray-900); margin: 0 0 12px 0;">' + icons[category] + ' ' + titles[category] + '</h4>';
+      html += '<ul style="margin: 0; padding-left: 20px;">';
+      guidance.resources[category].forEach(resource => {
+        html += '<li style="font-size: 13px; color: var(--gray-700); margin-bottom: 6px; line-height: 1.5;">' + resource + '</li>';
+      });
+      html += '</ul></div>';
+    });
+
+    html += '</div></div>';
+  }
+
+  // Coaching Insight
+  if (guidance.coachingInsight) {
+    html += '<div style="margin-top: 32px; padding: 24px; background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(0, 212, 229, 0.1)); border: 1px solid var(--primary-300); border-radius: 12px;">';
+    html += '<div style="white-space: pre-line; font-size: 14px; color: var(--gray-800); line-height: 1.7;">' + guidance.coachingInsight + '</div>';
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function resetCoach() {
+  document.getElementById('coachSetup').style.display = 'block';
+  document.getElementById('coachResults').style.display = 'none';
+  document.getElementById('coachCurrentRole').value = '';
+  document.getElementById('coachTargetRole').value = '';
+  document.getElementById('coachContext').value = '';
+  document.getElementById('coachStartBtn').disabled = true;
+  updateCoachTargetRoles();
 }
 
 // ===== DEPARTMENT MANAGEMENT =====
@@ -4543,6 +5102,10 @@ function showTab(tabName) {
     document.querySelectorAll('.nav-tab')[5].classList.add('active');
     document.getElementById('libraryTab').classList.add('active');
     loadCompetencyLibrary();
+  } else if (tabName === 'coach') {
+    document.querySelectorAll('.nav-tab')[6].classList.add('active');
+    document.getElementById('coachTab').classList.add('active');
+    loadCareerCoach();
   }
 }
 
