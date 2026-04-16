@@ -568,6 +568,31 @@
       background: var(--gray-50);
     }
 
+    .column-delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--danger-500);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s;
+      z-index: 20;
+    }
+
+    .job-column-header:hover .column-delete-btn {
+      opacity: 1;
+    }
+
+    .column-delete-btn:hover {
+      background: var(--danger-600);
+      transform: scale(1.1);
+    }
+
     .comp-name {
       font-weight: 600;
       color: var(--gray-900);
@@ -3948,8 +3973,14 @@ function confirmDeleteJob(id) {
   saveSavedJDs(filtered);
   updateDepartmentStats();
   loadSavedList();
+  loadCompareTable(); // Reload comparison table after deletion
   closeModal();
   showToast('Job deleted');
+}
+
+function deleteJobFromComparison(id) {
+  // Call the existing deleteJD function which handles validation and modal
+  deleteJD(id);
 }
 
 // ===== COMPARE TABLE =====
@@ -4219,9 +4250,11 @@ function loadCompareTable() {
   let html = '<table class="compare-table"><thead><tr>';
   html += '<th><span title="Drag rows to reorder">Competency</span> <span style="font-size: 11px; color: var(--gray-400);">↕️</span></th>';
   jds.forEach((jd, index) => {
-    html += '<th class="job-column-header" draggable="true" data-col-index="' + index + '" title="Drag to reorder columns" style="cursor: move;">';
+    html += '<th class="job-column-header" draggable="true" data-col-index="' + index + '" title="Drag to reorder columns" style="cursor: move; position: relative;">';
     html += '<span style="color: var(--gray-400); font-size: 14px; margin-right: 4px;">⋮⋮</span>';
-    html += jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span></th>';
+    html += jd.title + '<br><span style="font-size: 12px; font-weight: 500; color: var(--gray-600);">' + jd.level + '</span>';
+    html += '<button class="column-delete-btn" onclick="event.stopPropagation(); deleteJobFromComparison(' + jd.id + ')" title="Delete this position">🗑️</button>';
+    html += '</th>';
   });
   html += '</tr></thead><tbody id="compareTableBody">';
 
