@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1710,6 +1711,11 @@ Responsibilities:
           <span>🔄</span>
           Reset to Defaults
         </button>
+        <button class="btn btn-secondary" onclick="document.getElementById('competencyLibraryImport').click()" style="margin-left: 8px;">
+          <span>📤</span>
+          Import from Excel
+        </button>
+        <input type="file" id="competencyLibraryImport" accept=".xlsx,.xls" style="display: none;" onchange="importCompetencyLibrary(event)">
       </div>
 
       <div id="libraryContent"></div>
@@ -2314,6 +2320,107 @@ function resetLibraryToDefaults() {
     saveCompetencyLibrary(DEFAULT_COMPETENCY_LIBRARY);
     loadCompetencyLibrary();
     showToast('Competency library reset to defaults', 'success');
+  }
+}
+
+async function importCompetencyLibrary(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+
+    // Use the first sheet
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+    if (jsonData.length === 0) {
+      showToast('Excel file is empty', 'error');
+      return;
+    }
+
+    // Convert Excel data to competency library format
+    const library = {};
+
+    jsonData.forEach(row => {
+      // Support multiple column name variations
+      const department = row.Department || row.department || row.Category || row.category || 'General';
+      const name = row.Name || row.name || row.Competency || row.competency;
+      const desc = row.Description || row.description || row.Desc || row.desc || '';
+      const keywords = row.Keywords || row.keywords || row.Tags || row.tags || '';
+
+      // Handle level definitions
+      const levelD = row['Level D'] || row['D'] || row['Developing'] || row['developing'] || '';
+      const levelC = row['Level C'] || row['C'] || row['Competent'] || row['competent'] || '';
+      const levelA = row['Level A'] || row['A'] || row['Advanced'] || row['advanced'] || '';
+      const levelE = row['Level E'] || row['E'] || row['Expert'] || row['expert'] || '';
+
+      if (!name) return; // Skip rows without a name
+
+      // Initialize department array if it doesn't exist
+      if (!library[department]) {
+        library[department] = [];
+      }
+
+      // Parse keywords (handle comma-separated or array)
+      let keywordsArray = [];
+      if (typeof keywords === 'string' && keywords.trim()) {
+        keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+      } else if (Array.isArray(keywords)) {
+        keywordsArray = keywords;
+      }
+
+      // Create competency object
+      const competency = {
+        name: name,
+        desc: desc,
+        keywords: keywordsArray
+      };
+
+      // Add levels if any are defined
+      if (levelD || levelC || levelA || levelE) {
+        competency.levels = {};
+        if (levelD) competency.levels.D = levelD;
+        if (levelC) competency.levels.C = levelC;
+        if (levelA) competency.levels.A = levelA;
+        if (levelE) competency.levels.E = levelE;
+      }
+
+      library[department].push(competency);
+    });
+
+    // Ask user if they want to merge or replace
+    const merge = confirm(
+      'Import ' + jsonData.length + ' competencies from Excel.\n\n' +
+      'Click OK to MERGE with existing competencies.\n' +
+      'Click Cancel to REPLACE all competencies.'
+    );
+
+    if (merge) {
+      // Merge with existing library
+      const existingLibrary = getCompetencyLibrary();
+      Object.keys(library).forEach(dept => {
+        if (!existingLibrary[dept]) {
+          existingLibrary[dept] = [];
+        }
+        existingLibrary[dept] = existingLibrary[dept].concat(library[dept]);
+      });
+      saveCompetencyLibrary(existingLibrary);
+    } else {
+      // Replace entirely
+      saveCompetencyLibrary(library);
+    }
+
+    loadCompetencyLibrary();
+    showToast('Imported ' + jsonData.length + ' competencies successfully', 'success');
+
+    // Reset file input
+    event.target.value = '';
+  } catch (error) {
+    console.error('Import error:', error);
+    showToast('Failed to import Excel file: ' + error.message, 'error');
   }
 }
 
