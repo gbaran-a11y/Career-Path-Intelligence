@@ -1457,9 +1457,118 @@
     .gap-2 { gap: 16px; }
     .items-center { align-items: center; }
     .justify-between { justify-content: space-between; }
+
+    /* Password Protection */
+    .password-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, var(--navy-800) 0%, var(--navy-900) 100%);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .password-overlay.hidden {
+      display: none;
+    }
+
+    .password-box {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 30px rgba(0, 212, 229, 0.2);
+      border: 1px solid rgba(0, 212, 229, 0.2);
+      text-align: center;
+    }
+
+    .password-box h2 {
+      color: var(--navy-900);
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .password-box p {
+      color: var(--gray-600);
+      font-size: 15px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .password-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid var(--gray-300);
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+      background: var(--white);
+    }
+
+    .password-input:focus {
+      outline: none;
+      border-color: var(--primary-500);
+      box-shadow: 0 0 0 4px rgba(0, 212, 229, 0.1);
+    }
+
+    .password-submit {
+      width: 100%;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
+      color: var(--white);
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(0, 212, 229, 0.3);
+    }
+
+    .password-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 212, 229, 0.5);
+    }
+
+    .password-error {
+      color: var(--danger-600);
+      font-size: 14px;
+      margin-top: 12px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .password-error.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
+
+<!-- Password Protection Overlay -->
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-box">
+    <h2>🔒 Career Intelligence Platform</h2>
+    <p>This platform is password protected. Please enter the password to continue.</p>
+    <input type="password" class="password-input" id="passwordInput" placeholder="Enter password" autofocus>
+    <button class="password-submit" onclick="checkPassword()">Access Platform</button>
+    <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+  </div>
+</div>
 
 <div class="app-container">
   <!-- Header -->
@@ -5441,6 +5550,45 @@ window.addEventListener('DOMContentLoaded', function() {
   loadDepartmentSelector();
   showTab('analyzer');
   updateSavedCount();
+
+  // Check password on load
+  checkPasswordOnLoad();
+});
+
+// ===== PASSWORD PROTECTION =====
+
+const correctPassword = "career";
+
+function checkPassword() {
+  const input = document.getElementById('passwordInput');
+  const error = document.getElementById('passwordError');
+  const overlay = document.getElementById('passwordOverlay');
+
+  if (input.value === correctPassword) {
+    sessionStorage.setItem('careerPathAuthenticated', 'true');
+    overlay.classList.add('hidden');
+    error.classList.remove('show');
+  } else {
+    error.classList.add('show');
+    input.value = '';
+    input.focus();
+  }
+}
+
+function checkPasswordOnLoad() {
+  const isAuthenticated = sessionStorage.getItem('careerPathAuthenticated');
+  const overlay = document.getElementById('passwordOverlay');
+
+  if (isAuthenticated === 'true') {
+    overlay.classList.add('hidden');
+  }
+}
+
+// Allow Enter key to submit password
+document.getElementById('passwordInput')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    checkPassword();
+  }
 });
 </script>
 
